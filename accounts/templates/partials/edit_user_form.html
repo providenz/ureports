@@ -1,0 +1,95 @@
+{% load static %}
+
+<style>
+.user-logo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 10px;
+}
+
+.form-control {
+    border-radius: 4px;
+}
+
+.form-field {
+    margin-bottom: 10px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+}
+</style>
+
+<form method="post" action="{% url 'edit_user' user_id=user_id %}">
+    {% csrf_token %}
+
+    <div class="row">
+        <!-- Левый Блок: Изображение пользователя -->
+        <div class="col-md-4">
+            {% if form.logo.value %}
+                <img src="{{ form.logo.value.url }}" alt="User Image" class="user-logo">
+            {% else %}
+                <img src="{% static 'default_logo.jpg' %}" alt="Default Image" class="user-logo">
+            {% endif %}
+
+            <div class="form-field">
+                {{ form.logo.errors }}
+                {{ form.logo.label_tag }}
+                {{ form.logo }}
+            </div>
+        </div>
+
+        <!-- Центральный Блок: Основные поля формы -->
+<div class="col-md-4">
+    <div class="form-field">
+        <label class="form-label" for="id_username">Username</label>
+        {{ form.username }}
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" for="id_email">Email</label>
+        {{ form.email }}
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" for="id_user_type">User Type</label>
+        {{ form.user_type }}
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" for="id_is_active">Is Active</label>
+        {{ form.is_active }}
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" for="id_is_staff">Is Staff</label>
+        {{ form.is_staff }}
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" for="id_organisation_name">Organisation Name</label>
+        {{ form.organisation_name }}
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" for="id_first_name">First Name</label>
+        {{ form.first_name }}
+    </div>
+
+    <div class="form-field">
+        <label class="form-label" for="id_last_name">Last Name</label>
+        {{ form.last_name }}
+    </div>
+</div>
+
+
+        <!-- Правый Блок: Donated Projects -->
+        <div class="col-md-4">
+            <label class="form-label">Donated Projects</label>
+            {{ form.donated_projects }}
+        </div>
+    </div>
+</form>

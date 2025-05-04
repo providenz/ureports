@@ -1,0 +1,32 @@
+{% extends 'search_distr/base.html' %}
+{% block style %}
+<style>
+    .region-link {
+        text-decoration: none;
+    }
+
+    .card.shadow-lg {
+        transition: scale 0.3s;
+    }
+
+    .card.shadow-lg:hover {
+        scale: 1.05;
+
+    }
+</style>
+{% endblock style %}
+{% block content %}
+<div class="row">
+    {% for category in categories %}
+        <div class="col-md-3 mb-3">
+        <a class="region-link" href="{% url 'settlement_detail' setl_slug category.slug %}">
+            <div class="card text-white shadow-lg" style="background-color: #C51E1B;"> 
+                <div class="card-body">
+                    <h5 class="card-title">{{ category.name }}</h5>
+                </div>
+            </div>
+        </a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
