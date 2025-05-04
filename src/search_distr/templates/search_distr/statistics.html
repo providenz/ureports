@@ -1,0 +1,57 @@
+{% extends 'search_distr/base.html' %}
+{% block style %}
+<style>
+    .plus {
+        color: green;
+    }
+    .minus {
+        color: red;
+    }
+</style>
+{% endblock style %}
+{% block content %}
+    <div class="row">
+        <div class="col-lg-6">
+            <h3>{{total}} Unique benefeciaries</h3>
+            <h4>Compare Months:</h4>
+            <form method="post" class="form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="{{ form.y1.id_for_label }}" class="form-label">First Year</label>
+                    {{ form.y1 }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.m1.id_for_label }}" class="form-label">First Month</label>
+                    {{ form.m1 }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.y2.id_for_label }}" class="form-label">Second Year</label>
+                    {{ form.y2 }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.m2.id_for_label }}" class="form-label">Second Month</label>
+                    {{ form.m2 }}
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.category.id_for_label }}" class="form-label">Category</label>
+                    {{ form.category }}
+                </div>
+                <button type="submit" class="btn btn-success mt-2">Compare</button>
+            </form>
+        </div>
+        <div class="col-lg-6">
+            {% if diff %}
+            <h3>Comprasion</h3>
+            <h4 style="margin-bottom: 37px">Unique benefeciaries difference</h4>
+            <div class="card" style="width: 100%;">
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">Category - {{ category.name }}</li>
+                  <li class="list-group-item">{{ month1.month_name }} {{ month1.year }} - {{ qty1 }} benefeciaries</li>
+                  <li class="list-group-item">{{ month2.month_name }} {{ month2.year }} -  {{ qty2 }} benefeciaries</li>
+                  <li class="list-group-item {% if '-' in diff %}minus{% else %}plus{% endif %}">Difference: {{diff}} </li>
+                </ul>
+              </div>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

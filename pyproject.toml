@@ -1,0 +1,4 @@
+[tool.ruff]
+target-version = "py39"
+line-length = 119
+extend-exclude = ["migrations", "docs"]

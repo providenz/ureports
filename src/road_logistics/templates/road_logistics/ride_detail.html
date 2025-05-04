@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Activity Map{% endblock %}
+
+{% block additional_styles %}
+<style>
+    html, body {
+        height: 100%;
+        margin: 0;
+    }
+   
+   #map {
+       width: 100%;
+       height: calc(100% - 56px); /* высота навбара */
+   }
+   
+   
+   #distance, #reset, #legend {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 5px;
+        border-radius: 5px;
+        z-index: 1000;
+    }
+   
+   #distance {
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+   
+   #reset {
+        left: 10px;
+        bottom: 10px;
+    }
+   
+    #legend {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        max-height: calc(100% - 60px);
+        width: 250px;
+        overflow-y: auto;
+        background: transparent;
+        padding: 5px;
+        border-radius: 8px;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    
+   
+   
+   .legend-item {
+        background: white; /* Установить белый фон для каждого элемента легенды */
+        border-radius: 8px; /* Скругленные углы */
+        padding: 5px;
+        margin-bottom: 10px; /* Отступ между элементами легенды */
+        display: block; /* Элементы отображаются как блоки */
+        border: none; /* Убрать ободок */
+   }
+   
+   
+   .legend-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; 
+        padding: 5px; 
+        border-radius: 5px; 
+        background-color: white;
+   }
+   
+   .legend-point, .legend-distance-block {
+        margin: 0; /* Убираем внешние отступы, если они были */
+    }
+   
+   .legend-distance-block {
+        padding: 2px 5px; /* Добавляем немного внутренних отступов */
+        background-color: transparent; /* Убираем фон, так как он будет в .legend-content */
+        border: none; /* Убираем границу */
+   }
+</style>
+{% endblock %}
+
+{% block additional_css %}
+<!-- Third-party CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.0/MarkerCluster.css" crossorigin="anonymous"/>
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.0/MarkerCluster.Default.css" crossorigin="anonymous"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" crossorigin="anonymous">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.0/Control.FullScreen.css" crossorigin="anonymous"/>
+
+
+
+<!-- Local CSS -->
+<link rel="stylesheet" href="{% static 'css/leaflet.awesome-markers.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="content-inner w-100 pb-0">
+    <div class="container-fluid">
+        <div class="card mb-0">
+            <div class="card-header">
+                <h4 class="mb-0">Activity Map</h4>
+                <div id="distance">Total: 0 км</div>
+                <div id="legend"></div>
+            </div>
+            <div class="card-body w-100">
+                <div class="map_block" id="map" style="height: 75vh;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Third-party JS -->
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<style>
+    .info-popup {
+        margin: 4px 0 !important;
+        width: 100%;
+}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.0/leaflet.markercluster.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.fullscreen/3.0.0/Control.FullScreen.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" crossorigin="anonymous"/>
+<script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+<script src="https://unpkg.com/leaflet-simple-map-screenshoter"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+<script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+
+<!-- Local JS -->
+<script src="{% static 'js/leaflet.awesome-markers.js' %}"></script>
+<script>
+    const cartoLayer = L.tileLayer(
+  "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  }
+);
+
+const map = L.map("map", {
+  center: [48.459801, 35.009273],
+  zoom: 11,
+  layers: [cartoLayer],
+  minZoom: 7,
+  maxZoom: 15,
+  zoomControl: false,
+  fullscreenControl: true,
+  fullscreenControlOptions: {
+    position: "bottomright",
+  },
+  preferCanvas: true,
+});
+
+var routeColors = ['blue', 'green', 'red', 'purple', 'orange'];
+var currentRouteIndex = 0;
+var routePoints = []; 
+var routeSegments = []; 
+var routeMarkers = [];
+
+function addRow(lat, lng) {
+    var newMarker = L.marker({lat, lng}).addTo(map).bindPopup("Point №" + (routePoints.length + 1)).openPopup();
+    routeMarkers.push(newMarker); 
+    routePoints.push({lat, lng});
+    if(routePoints.length > 1) {
+        getRoute();
+    }
+}
+
+function getRoute() {
+    if (routePoints.length < 2) return;
+
+    var lastIndex = routePoints.length - 1
+    var lastSegmentPoints = [routePoints[lastIndex - 1], routePoints[lastIndex]];
+    var coordinates = lastSegmentPoints.map(p => p.lng + ',' + p.lat).join(';');
+    var color = routeColors[currentRouteIndex % routeColors.length];
+    currentRouteIndex++;
+    var url = `http://router.project-osrm.org/route/v1/driving/${coordinates}?overview=full&geometries=geojson`;
+    fetch(url).then(response => response.json()).then(data => {
+        var routeSegment = data.routes[0].geometry;
+        var routeLine = L.geoJSON(routeSegment, {
+            weight: 5,
+            color: color
+        }).addTo(map);
+        routeLine.on('click', function() {
+            highlightRoute(routeLine);
+        });
+        routeSegments.push({ line: routeLine, color: color });
+        updateDistance();
+        updateLegend();
+        
+    });
+}
+
+function updateDistance() {
+    var totalDistance = 0;
+    routeSegments.forEach(segment => {
+        totalDistance += calculateSegmentDistance(segment.line);
+    });
+    document.getElementById('distance').innerHTML = 'Total: ' + totalDistance.toFixed(2) + ' km';
+}
+
+function updateLegend() {
+var legend = document.getElementById('legend');
+legend.innerHTML = ''; 
+
+routeSegments.forEach((segment, index) => {
+    var color = segment.color;
+    var distance = calculateSegmentDistance(segment.line).toFixed(2);
+
+    var legendItem = document.createElement('div');
+    legendItem.className = 'legend-item';
+
+    var contentContainer = document.createElement('div');
+    contentContainer.className = 'legend-content';
+    contentContainer.style.borderColor = color;
+
+    contentContainer.innerHTML = `
+        <div class="legend-point">Point №${index + 1}</div>
+        <div class="legend-distance-block">
+            <span class="legend-distance" style="color: white; background-color: ${color};">${distance} км</span>
+        </div>
+        <div class="legend-point">Point №${index + 2}</div>
+    `;
+
+    legendItem.appendChild(contentContainer);
+
+    legendItem.addEventListener('click', function() {
+        highlightRoute(segment.line);
+    });
+
+    legend.appendChild(legendItem);
+});
+
+if (routePoints.length - 1 > routeSegments.length) {
+    var lastPointIndex = routePoints.length;
+    var lastPointItem = document.createElement('div');
+    lastPointItem.className = 'legend-item';
+
+    var lastPointContent = document.createElement('div');
+    lastPointContent.className = 'legend-content';
+    lastPointContent.innerHTML = `<div class="legend-point">Point №${lastPointIndex}</div>`;
+
+    lastPointItem.appendChild(lastPointContent);
+    legend.appendChild(lastPointItem);
+}
+}
+
+
+function calculateSegmentDistance(segment) {
+    var coords = segment.getLayers()[0].getLatLngs();
+    var distance = 0;
+    for (var i = 0; i < coords.length - 1; i++) {
+        distance += coords[i].distanceTo(coords[i + 1]);
+    }
+    return distance / 1000; 
+}
+
+function highlightRoute(routeLine) {
+    resetHighlight();
+    routeLine.setStyle({ weight: 10 });
+    routeLine.bringToFront();
+}
+
+function resetHighlight() {
+    routeSegments.forEach(segment => {
+        segment.line.setStyle({ weight: 5 });
+    });
+}
+
+
+{% for point in points %}
+addRow({{point.y}}, {{point.x}})
+{% endfor %}
+
+</script>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const fullScreenBtnDefault = document.querySelector('.leaflet-control-zoom-fullscreen')
+            const icon = document.createElement('i');
+            icon.classList.add('fas', 'fa-expand');
+            fullScreenBtnDefault.appendChild(icon);
+});
+
+</script>
+{% endblock %}

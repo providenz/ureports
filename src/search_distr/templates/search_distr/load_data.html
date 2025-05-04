@@ -1,0 +1,23 @@
+{% extends 'search_distr/base.html' %}
+{% load static %}
+{% block style %}
+<link rel="stylesheet" href="{% static 'css/search_distr/xlsx-form.css' %}"/>
+
+{% endblock style %}
+{% block content %}
+    <div class="row">
+
+        <form method="post" enctype="multipart/form-data" class="load-form">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="load-button">Upload</button>
+        </form>
+        {% if error %}
+        <div style="display: flex; justify-content: center;align-items: center; width: 100%; flex-direction: column;">
+            <h2 style="color: red;">ERROR!</h2>
+            <p style="color: red;">{{ error }}</p>
+        </div>
+        {% endif %} 
+    </div>
+
+{% endblock %}

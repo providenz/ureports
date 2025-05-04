@@ -1,0 +1,183 @@
+{% extends 'base.html' %}
+{% block title %}Generated Files{% endblock %}
+{% block content %}
+{% load static %}
+
+<!-- Breadcrumb-->
+<div class="bg-white">
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-3">
+                <li class="breadcrumb-item"><a class="fw-light" href="{% url 'index'%}">Home</a>
+                </li>
+                <li class="breadcrumb-item active fw-light" aria-current="page">Upload Data</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+    <div class="card-body p-3">
+    <form method="post" onsubmit="handleFormSubmit(event)">
+        {% csrf_token %}
+        <div class="row gy-4">
+            <div class="col-sm-5">
+                <div class="mb-3">
+                  <label for="formFileZip" class="form-label">Choose ZIP with photos</label>
+                  <input class="form-control" type="file" id="formFileZip" name="ZipFile" accept=".zip" required>
+                </div>
+                <!-- ZIP progress bar -->
+                <div class="progress mb-3" style="width: 50%">
+                    <div class="progress-bar bg-success" id="zipProgressBar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">ZIP Progress</div>
+                </div>
+            </div>
+            <div class="col-sm-5">
+                <div class="mb-3">
+                  <label for="formFileXlsx" class="form-label">Choose Excel file with data</label>
+                  <input class="form-control" type="file" id="formFileXlsx" name="XlsxFile" accept=".xlsx" required>
+                </div>    
+                <div class="progress mb-3" style="width: 50%">
+                    <div class="progress-bar bg-info" id="xlsxProgressBar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">XLSX Progress</div>
+                </div>
+            </div>
+            <div class="col-sm-2">
+                <div class="mb-3 w-100 h-100" style="display: flex; text-align: center; align-items: center; justify-content: center">
+                    <button id="SubmitBtn" type="submit" class="btn btn-success" >Upload Data</button>
+                </div>
+            </div>
+        </div>
+    </form>
+    </div>
+<div class="content-inner w-100 pb-0" id="info_container" style="display: none">
+    <div class="container-fluid">
+        <div class="card mb-0">
+            <div class="card-body w-100">
+                <div class="info_block"  style="height: 50vh;display: flex;justify-content: center; align-items: center; overflow-y: auto;">
+                    <div class="spinner-border text-primary" id="spinner" role="status" style="display: none">
+                        <span class="sr-only">Loading...</span>
+                      </div>
+                    <div class="w-100 h-100" style="display: none" id="info">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const handleFormSubmit = async (event) => {
+        event.preventDefault();
+        const csrfToken = document.getElementsByName('csrfmiddlewaretoken')[0].value;
+        const zipFileInput = document.getElementById('formFileZip'); // Get your zip file input element
+        const xlsxFileInput = document.getElementById('formFileXlsx'); // Get your xlsx file input element
+    
+        const zipFile = zipFileInput.files[0];
+        const xlsxFile = xlsxFileInput.files[0];
+    
+        if (!zipFile || !xlsxFile) {
+            return;
+        }
+    
+        try {
+            const zipProgressBar = document.getElementById('zipProgressBar');
+            const xlsxProgressBar = document.getElementById('xlsxProgressBar');
+    
+            zipProgressBar.style.width = '0%';
+            xlsxProgressBar.style.width = '0%';
+    
+            await uploadFileInChunks(zipFile, csrfToken, 'zip_file', zipProgressBar);
+            await uploadFileInChunks(xlsxFile, csrfToken, 'xlsx_file', xlsxProgressBar);
+            
+            console.log('File uploads completed.');
+        } catch (error) {
+            console.error('Error uploading files:', error);
+        }
+    };
+    
+    async function uploadFileInChunks(file, csrfToken, fieldName, progressBar) {
+        const chunkSize = 1 * 1024 * 1024; // 1MB chunks (adjust as needed)
+        const chunks = Math.ceil(file.size / chunkSize);
+        const url = '/api/upload_chunks/'; // Your Django endpoint to handle chunks
+        if (chunks <= 1 && fieldName === "xlsx_file") {
+            const progress = (1 / chunks) * 100;
+            progressBar.style.width = `${progress}%`;
+            info_container = document.querySelector("#info_container")
+            spinner = document.querySelector("#spinner")
+            info_container.style.display = 'block'
+            spinner.style.display = 'block'
+        }
+        for (let index = 0; index < chunks; index++) {
+            const start = index * chunkSize;
+            const end = Math.min(file.size, start + chunkSize);
+            const chunk = file.slice(start, end);
+    
+            const formData = new FormData();
+            formData.append(fieldName, chunk); // Use the correct field name here
+            formData.append('index', index);
+            formData.append('total_chunks', chunks);
+            formData.append('csrfmiddlewaretoken', csrfToken);
+    
+            const response = await fetch(url, {
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin',
+                headers: {
+                    'X-CSRFToken': csrfToken,
+                },
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok.');
+            }
+    
+            const progress = ((index + 1) / chunks) * 100;
+            progressBar.style.width = `${progress}%`;
+    
+            const data = await response.json();
+            if(data.created_objects && data.errors) {
+                console.log(data)
+                addToPage(data)
+            }
+        }
+    }
+    
+    function addToPage(data) {
+        info = document.querySelector("#info")
+        const spinner = document.querySelector("#spinner")
+        spinner.style.display = "none"
+        const TotalCreate = document.createElement('h2')
+        TotalCreate.innerHTML = `Successfully created ${data.created_objects} datatable objects`
+        info.appendChild(TotalCreate)
+
+        data.errors.forEach(errorObject => {
+            const index = errorObject.index;
+            const errorDiv = document.createElement('div')
+            const errorLabel =  document.createElement('h5')
+            const errorList = document.createElement('ul'); // Create a container for errors for each index
+            errorList.classList.add('error-index'); // Add a CSS class for styling purposes (optional)
+            errorLabel.textContent = `Errors at ${index} row:`
+
+            // Loop through error keys excluding 'index' to display individual error messages
+            for (const key in errorObject) {
+                if (key !== 'index') {
+                    const errorItem = document.createElement('li'); // Create a div for each error message
+                    errorItem.textContent = `${key}: ${errorObject[key]}`; // Display error message (key: value)
+                    errorList.appendChild(errorItem); // Append error message to the container for this index
+                }
+            }
+
+            // Append error container for this index to the main errors container
+            errorDiv.appendChild(errorLabel)
+            errorDiv.appendChild(errorList)
+            info.appendChild(errorDiv);
+        
+        });
+        info.style.display = 'block'
+    }
+
+</script>
+
+{% endblock %}

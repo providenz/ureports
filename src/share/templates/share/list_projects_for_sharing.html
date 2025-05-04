@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+
+<style>
+    .rounded {
+        border-radius: 350px; /* Задайте больший радиус закругления */
+    }
+</style>
+
+
+{% block content %}
+<div class="container mt-3">
+    <h2>Available Projects for Sharing</h2>
+    <div class="row">
+        {% for project in projects %}
+        <div class="col-md-4 mb-3">
+            <div class="card rounded">
+                <div class="card-body">
+                    <h5 class="card-title">{{ project.name }}</h5>
+                    <p class="card-text">{{ project.description|truncatechars:100 }}</p>
+                    <a href="{% url 'share_project' project.slug %}" class="btn btn-primary">
+                        <i class="fas fa-share-alt"></i> Share Project
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>No projects available to share.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

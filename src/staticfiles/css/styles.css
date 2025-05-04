@@ -1,0 +1,49 @@
+.card {
+    height: 100%;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.project-card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.project-card:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+.card-title i {
+    margin-right: 10px;
+}
+
+.learn-more-btn i {
+    margin-left: 5px;
+}
+
+.learn-more-btn:hover {
+    background-color: #e8e8e8;
+    transition: background-color 0
+.custom-dropdown-toggle {
+    color: white; /* White text color */
+    border-color: white; /* White border */
+    background-color: transparent; /* Transparent background */
+    transition: background-color 0.3s ease, color 0.3s ease; /* Transition effect */
+}
+
+.custom-dropdown-toggle:hover {
+    background-color: white; /* White background on hover */
+    color: #28a745; /* Green text color on hover */
+}
+.dropdown-toggle:focus {
+    box-shadow: none;
+    outline: none;
+}
+
+.dropdown-toggle:hover {
+    background-color: #28a745; /* Green on hover */
+    color: white;
+}

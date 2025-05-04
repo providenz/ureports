@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% block title %}Tables{% endblock %}
+{% block content %}
+
+
+<!-- Ваши стили -->
+<style>
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+    }
+    #example-table {
+        width: 100%;
+        display: block;
+    }
+    .tabulator-paginator {
+        text-align: center;
+    }
+</style>
+
+<!-- Breadcrumb-->
+<div class="bg-white">
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-3">
+                <li class="breadcrumb-item"><a class="fw-light" href="{% url 'index'%}">Home</a></li>
+                <li class="breadcrumb-item active fw-light" aria-current="page">Table</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="container">  <!-- Добавлен контейнер Bootstrap -->
+    <div class="table-container">
+        <div id="example-table"></div>
+    </div>
+</div>
+<script>
+    var table = new Tabulator("#example-table", {
+        height:"450px",
+        pagination:"local",
+        paginationSize:12,
+        ajaxURL:"/api/project/{{ project.id }}/category/{{ category.id }}/tables/",
+        columns:[
+            {title:"Category Name", field:"category_name", responsive:0},
+            {title:"Gender", field:"gender", responsive:1},
+            {title:"Age", field:"age", responsive:2},
+            {title:"Oblast", field:"oblast", responsive:3},
+            {title:"Rayon", field:"rayon", responsive:4},
+            {title:"Hromada", field:"hromada", responsive:5},
+            {title:"Place", field:"place", responsive:6},
+            {title:"Address", field:"address", responsive:7},
+            {title:"Female 0-17", field:"female_0_17", responsive:8},
+            {title:"Male 0-17", field:"male_0_17", responsive:9},
+            {title:"Female 18-59", field:"female_18_59", responsive:10},
+            {title:"Male 18-59", field:"male_18_59", responsive:11},
+            {title:"Female 60+", field:"female_60plus", responsive:12},
+            {title:"Male 60+", field:"male_60plus", responsive:13}
+        ],
+    });
+</script>
+
+{% endblock %}

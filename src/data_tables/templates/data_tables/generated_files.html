@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Generated Files{% endblock %}
+{% block content %}
+
+<!-- Breadcrumb-->
+<div class="bg-white">
+    <div class="container-fluid">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0 py-3">
+                <li class="breadcrumb-item"><a class="fw-light" href="{% url 'index'%}">Home</a>
+                </li>
+                <li class="breadcrumb-item active fw-light" aria-current="page">Generated Files</li>
+            </ol>
+        </nav>
+    </div>
+</div>
+<div class="list-group">
+  {% for file in files %}
+  <span href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+    <div class="d-flex w-100 justify-content-between">
+      <div class="d-flex flex-column">
+        <h3 class="mb-2">{{file.name}}</h3>
+        <h4 class="mb-1">{{file.user.organisation_name}}</h4>
+        <p class="">{{file.user.first_name}} {{file.user.last_name}}</p>
+      </div>
+
+      <div class='d-flex flex-column'>     
+          <small class='mb-2'>{{file.download_date}}</small>
+           <a href="{{file.xlsx_file.url}}" class="btn btn-success btn-sm mb-1"><i class="fa-regular fa-file-excel"></i> Download Excel</a>
+           <a href="{{file.pdf_file.url}}" class="btn btn-info btn-sm mb-1"><i class="fa-regular fa-file-pdf"></i> Download PDF</a>
+           <a href="/delete_generated_file/{{file.id}}" class="btn btn-danger btn-sm mb-1"><i class="fas fa-trash"></i> Delete Entry</a>
+      </div>
+    </div>
+   
+</span>
+  {% endfor %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+</script>
+
+{% endblock %}
