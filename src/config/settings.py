@@ -1,5 +1,6 @@
 import environ
 import os
+from pathlib import Path
 
 from datetime import timedelta
 
@@ -8,19 +9,18 @@ env = environ.Env(
     DEBUG=(bool, False)
 )
 
-# Set the project base directory
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parents[2]
+SRC_DIR = BASE_DIR / "src"
 
 # Take environment variables from .env file
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+environ.Env.read_env(SRC_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
-ALLOWED_HOSTS = ["185.69.155.45", "localhost", "127.0.0.1", "u-reports.org"]
-
+ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 # Application definition
 
 INSTALLED_APPS = [
@@ -59,7 +59,7 @@ ROOT_URLCONF = "config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [os.path.join(BASE_DIR, "templates")],
+        "DIRS": [SRC_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -123,23 +123,19 @@ USE_TZ = True
 
 
 STATIC_URL = '/static/'
-
-# Указывает путь, куда будут собираться статические файлы
-# Обычно это папка 'static' в корневой директории проекта
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 )
+STATICFILES_DIR = SRC_DIR / 'staticfiles'
 
-STATICFILES_DIR = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = BASE_DIR / "public" / 'static'
 
 STATICFILES_DIRS = [
     str(STATICFILES_DIR),
 ]
 MEDIA_URL = "/media/"
-MEDIA_ROOT = os.path.join(BASE_DIR, "media")
+MEDIA_ROOT = SRC_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
