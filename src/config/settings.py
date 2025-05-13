@@ -16,7 +16,7 @@ SRC_DIR = BASE_DIR / "src"
 environ.Env.read_env(SRC_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
-
+print(SRC_DIR)
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env("DEBUG")
 
@@ -135,7 +135,7 @@ STATICFILES_DIRS = [
     str(STATICFILES_DIR),
 ]
 MEDIA_URL = "/media/"
-MEDIA_ROOT = SRC_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / "public" / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
