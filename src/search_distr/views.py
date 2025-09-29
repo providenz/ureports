@@ -29,7 +29,7 @@ def index(request):
         else:
             form = RegionForm()
 
-        if request.user.manager_access.is_full or request.user.is_superuser:
+        if (request.user.manager_access and request.user.manager_access.is_full) or request.user.is_superuser:
             regions = Region.objects.all()
         else:
             regions = request.user.manager_access.regions.all()

@@ -10,7 +10,7 @@ const map = L.map("map", {
   center: [48.459801, 35.009273],
   zoom: 11,
   layers: [cartoLayer],
-  minZoom: 6,
+  minZoom: 7,
   maxZoom: 15,
   zoomControl: false,
   fullscreenControl: true,
@@ -62,34 +62,37 @@ map.on('moveend', () => {
 
 
 function addDeepStateLayer(map) {
-    fetch("https://deepstatemap.live/api/history/1687169321/geojson", {
-      mode: "cors",
+    getFirstId().then(id => {
+      fetch(`https://deepstatemap.live/api/history/${id}/geojson`, {
+        mode: "cors",
+      })
+        .then(function (response) {
+          return response.json();
+        })
+        .then(function (data) {
+          const polygons = data.features.filter(
+            (feature) => feature.geometry.type !== "Point"
+          );
+          const geoJsonData = {
+            type: "FeatureCollection",
+            features: polygons,
+          };
+          L.geoJSON(geoJsonData, {
+            style: function (feature) {
+              return {
+                color: feature.properties.stroke,
+                fillColor: feature.properties.fill,
+                weight: feature.properties["stroke-width"],
+                fillOpacity: feature.properties["fill-opacity"],
+              };
+            },
+          }).addTo(map);
+        })
+        .catch(function (error) {
+          console.error(error);
+        });
     })
-      .then(function (response) {
-        return response.json();
-      })
-      .then(function (data) {
-        const polygons = data.features.filter(
-          (feature) => feature.geometry.type !== "Point"
-        );
-        const geoJsonData = {
-          type: "FeatureCollection",
-          features: polygons,
-        };
-        L.geoJSON(geoJsonData, {
-          style: function (feature) {
-            return {
-              color: feature.properties.stroke,
-              fillColor: feature.properties.fill,
-              weight: feature.properties["stroke-width"],
-              fillOpacity: feature.properties["fill-opacity"],
-            };
-          },
-        }).addTo(map);
-      })
-      .catch(function (error) {
-        console.error(error);
-      });
+
 }
 
 function addRegionsBordersLayer(map) {
@@ -248,10 +251,13 @@ function fetchMarkers(map) {
                     const marker = L.marker(latLng, {icon: customIcon});
                     currentMarkers[markerData.id] = {
                         marker: marker, 
-                        activityId: markerData.category.id, 
+                        activityId: markerData.category.id,
                         popupDataFetched: false, 
                         currentPage: 1,
-                        maxPage: 1
+                        maxPage: 1,
+                        activityName: markerData.category.name,
+                        projectName: markerData.project.name,
+                        placeName: markerData.place.settlement,
                     }
                     marker.on('click', function(event) {
                         updatePopup( markerData.id, 0);
@@ -272,7 +278,7 @@ window.updatePopup = (id, offset) => {
         markerData.currentPage = 1;
     }
     if (markerData.currentPage <= 0) {
-        markerData.currentPage = markerData.maxPages;
+        markerData.currentPage = markerData.maxPage;
     }
 
     fetchPhoto(markerData.currentPage, id).then((updateData) => {
@@ -287,7 +293,7 @@ window.updatePopup = (id, offset) => {
             .join("");
             marker.bindPopup(`
                 <div id="${id}" style="width: 301px;">
-                    <h5 id="${id}" style="text-align: center; width: 301px">${updateData.dataObj.category_name}</h5>
+                    <h5 id="${id}" style="text-align: center; width: 301px">${updateData.dataObj.settlement}</h5>
                     <div id="${id}" style="display: flex; width: 301px; justify-content: center">
                         <div id="${id}" style="display: flex; align-items: center;">
                             <span id="${id}" onclick="updatePopup(${id}, -1)" style="cursor: pointer; margin-right: 10px; font-size: 1.5em;"><i class="fa-solid fa-arrow-left"></i></span>
@@ -295,8 +301,8 @@ window.updatePopup = (id, offset) => {
                             <span id="${id}" onclick="updatePopup(${id}, 1)" style="cursor: pointer; margin-left: 10px; font-size: 1.5em"><i class="fa-solid fa-arrow-right" style="color: #000000;"></i></span>
                         </div>  
                         <div id="${id}" style="display: flex; min-width: 100px; flex-direction: column; margin-left: 20px"> 
+                            <p class="info-popup">Activity: ${updateData.dataObj.category_name}</p>   
                             <p style="width: 100px" class="info-popup">Date: ${updateData.dataObj.date}</p>
-                            <p class="info-popup">Place: ${updateData.dataObj.settlement}</p>      
                             <p style="width: 100px" class="info-popup">Gender: ${updateData.dataObj.gender}</p>
                             <p class="info-popup">Age: ${updateData.dataObj.age}</p> 
                             ${received_items ? `<p style="width: 100px" class="info-popup">Received items:</p><ul>${received_items}</ul>`: ""}
@@ -308,6 +314,17 @@ window.updatePopup = (id, offset) => {
                     marker.openPopup();
                 }
             }
+        else {
+          marker.bindPopup(`
+            <p>Place: ${markerData.placeName}</p>
+            <p>Project: ${markerData.projectName}</p>
+            <p>Activity: ${markerData.activityName}</p>
+          `)
+          if (offset == 0)
+          {
+              marker.openPopup();
+          }
+          }
         });
   
 }
@@ -395,3 +412,19 @@ function attachContextMenuToPopupImages() {
 }
 
 
+async function getFirstId() {
+  try {
+    const response = await fetch('https://deepstatemap.live/api/history/');
+    const data = await response.json();
+
+    if (Array.isArray(data) && data.length > 0) {
+      const id = data[0].id;
+      return id;
+    } else {
+      throw new Error("No data found or invalid response format");
+    }
+  } catch (error) {
+    console.error("Error fetching data:", error);
+    return null;
+  }
+}
