@@ -35,6 +35,8 @@ python-docx = "*"
 requests = "*"
 
 [dev-packages]
+isort = "*"
+ruff = "*"
 
 [requires]
 python_version = "3.11"
