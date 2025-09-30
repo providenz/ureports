@@ -1,6 +1,6 @@
 from django.contrib import admin
-from search_distr.models import Person, Region, Settlement, Distribution, Month, File, ManagerAccess
 
+from search_distr.models import Distribution, File, ManagerAccess, Month, Person, Region, Settlement
 
 admin.site.register(Person)
 admin.site.register(Region)

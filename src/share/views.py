@@ -1,14 +1,14 @@
-from django.views.decorators.csrf import csrf_exempt
-from accounts.models import CustomUser
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
-from django.http import HttpResponseForbidden
-from share.models import ProjectSharing
-from share.forms import ShareProjectByEmailForm
+from django.http import HttpResponseForbidden, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.views.decorators.csrf import csrf_exempt
+
+from accounts.models import CustomUser
 from reports.models import Project
+from share.forms import ShareProjectByEmailForm
+from share.models import ProjectSharing
 
 
 @login_required
@@ -18,9 +18,7 @@ def share_project(request, slug):
     if request.user.is_superuser:
         shared_with = ProjectSharing.objects.filter(project=project)
     else:
-        shared_with = ProjectSharing.objects.filter(
-            project=project, shared_by=request.user
-        )
+        shared_with = ProjectSharing.objects.filter(project=project, shared_by=request.user)
 
     if request.method == "POST":
         form = ShareProjectByEmailForm(request.POST)
@@ -33,9 +31,7 @@ def share_project(request, slug):
                     raise ValidationError("You can't share a project with yourself.")
 
                 # Check if the project is already shared with the specified user
-                if ProjectSharing.objects.filter(
-                    project=project, shared_with=user_to_share_with
-                ).exists():
+                if ProjectSharing.objects.filter(project=project, shared_with=user_to_share_with).exists():
                     messages.error(
                         request,
                         "This project is already shared with the specified user.",
@@ -49,9 +45,7 @@ def share_project(request, slug):
                         shared_by=request.user,
                         shared_with=user_to_share_with,
                     )
-                    messages.success(
-                        request, "The project has been successfully shared."
-                    )
+                    messages.success(request, "The project has been successfully shared.")
             except CustomUser.DoesNotExist:
                 messages.error(request, "No user with this email was found.")
             except ValidationError as e:
@@ -79,14 +73,9 @@ def revoke_share(request, slug, user_id):
     # Check if the user can revoke the license for this project
     if (
         not request.user.is_superuser
-        and project.sharings.filter(
-            shared_with=user_to_revoke, shared_by=request.user
-        ).count()
-        == 0
+        and project.sharings.filter(shared_with=user_to_revoke, shared_by=request.user).count() == 0
     ):
-        return HttpResponseForbidden(
-            "You don't have permission to revoke this license."
-        )
+        return HttpResponseForbidden("You don't have permission to revoke this license.")
 
     if request.method == "POST":
         # Remove the user from the project donors field
@@ -108,9 +97,7 @@ def revoke_share(request, slug, user_id):
 @login_required
 def list_projects_for_sharing(request):
     projects = Project.objects.filter(donors=request.user)
-    return render(
-        request, "share/list_projects_for_sharing.html", {"projects": projects}
-    )
+    return render(request, "share/list_projects_for_sharing.html", {"projects": projects})
 
 
 @csrf_exempt
@@ -129,22 +116,14 @@ def share_with_email_view(request):
 
     # Check that the user is not trying to share the project with themselves
     if user_to_share_with == request.user:
-        return JsonResponse(
-            {"error": "You can't share a project with yourself."}, status=400
-        )
+        return JsonResponse({"error": "You can't share a project with yourself."}, status=400)
 
     # Check if the project has already been shared with this user
-    if ProjectSharing.objects.filter(
-        project=project, shared_with=user_to_share_with
-    ).exists():
-        return JsonResponse(
-            {"error": "This project is already shared with this user."}, status=400
-        )
+    if ProjectSharing.objects.filter(project=project, shared_with=user_to_share_with).exists():
+        return JsonResponse({"error": "This project is already shared with this user."}, status=400)
 
     # Create a record in ProjectSharing with user and date information
-    sharing = ProjectSharing.objects.create(
-        project=project, shared_by=request.user, shared_with=user_to_share_with
-    )
+    sharing = ProjectSharing.objects.create(project=project, shared_by=request.user, shared_with=user_to_share_with)
 
     # Adding a user to the project donors field
     project.donors.add(user_to_share_with)

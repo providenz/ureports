@@ -18,15 +18,11 @@ class DataTablePhotoFilterForm(forms.Form):
         required=False,
     )
     date_from = forms.DateField(
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "form-control filter_input"}
-        ),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control filter_input"}),
         required=False,
     )
     date_to = forms.DateField(
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "form-control filter_input"}
-        ),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control filter_input"}),
         required=False,
     )
 

@@ -1,8 +1,7 @@
-import environ
-import os
+from datetime import timedelta
 from pathlib import Path
 
-from datetime import timedelta
+import environ
 
 env = environ.Env(
     # set casting, default value
@@ -43,7 +42,7 @@ INSTALLED_APPS = [
     "activity_map",
     "share",
     "road_logistics",
-    "search_distr"
+    "search_distr",
 ]
 
 MIDDLEWARE = [
@@ -87,7 +86,7 @@ DATABASES = {
         "USER": env("DB_USER"),
         "PASSWORD": env("DB_PASSWORD"),
         "HOST": env("DB_HOST"),
-        "PORT": env("DB_PORT")
+        "PORT": env("DB_PORT"),
     }
 }
 
@@ -124,20 +123,20 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 
-STATIC_URL = '/static/'
+STATIC_URL = "/static/"
 STATICFILES_FINDERS = (
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 )
-STATICFILES_DIR = SRC_DIR / 'staticfiles'
+STATICFILES_DIR = SRC_DIR / "staticfiles"
 
-STATIC_ROOT = BASE_DIR / "public" / 'static'
+STATIC_ROOT = BASE_DIR / "public" / "static"
 
 STATICFILES_DIRS = [
     str(STATICFILES_DIR),
 ]
 MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "public" / 'media'
+MEDIA_ROOT = BASE_DIR / "public" / "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -159,7 +158,7 @@ SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
 }
 
-CSRF_TRUSTED_ORIGINS = ['http://u-reports.org', 'http://www.u-reports.org', 'https://u-reports.org']
+CSRF_TRUSTED_ORIGINS = ["http://u-reports.org", "http://www.u-reports.org", "https://u-reports.org"]
 
 GDAL_LIBRARY_PATH = env("GDAL_LIBRARY_PATH")
 GEOS_LIBRARY_PATH = env("GEOS_LIBRARY_PATH")

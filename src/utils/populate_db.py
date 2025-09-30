@@ -1,15 +1,16 @@
 import os
-import django
 import random
+
+import django
+from django.core.files import File
 from faker import Faker
+
+from accounts.models import CustomUser
+from reports.models import Category, DistributionPhoto
 
 # Инициализация Django
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
-
-from accounts.models import CustomUser
-from reports.models import Project, DistributionPhoto, Category
-from django.core.files import File
 
 fake = Faker()
 
@@ -19,9 +20,7 @@ def add_photos_to_db(photo_folder_path):
     all_categories = list(Category.objects.all())
 
     all_photos = os.listdir(photo_folder_path)
-    random.shuffle(
-        all_photos
-    )  # Перемешиваем список фото, чтобы распределить их случайным образом
+    random.shuffle(all_photos)  # Перемешиваем список фото, чтобы распределить их случайным образом
 
     for photo_file in all_photos:
         photo_path = os.path.join(photo_folder_path, photo_file)

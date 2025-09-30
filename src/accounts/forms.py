@@ -1,8 +1,9 @@
 from django import forms
-from accounts.models import CustomUser as User
 from django.forms.widgets import ClearableFileInput
 
 from reports.models import Project
+
+from .models import CustomUser
 
 
 class CustomImageWidget(ClearableFileInput):
@@ -18,12 +19,8 @@ class CustomImageWidget(ClearableFileInput):
 
 
 class LoginForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"class": "input-material"}), required=True
-    )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True
-    )
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "input-material"}), required=True)
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True)
 
 
 class SignUpForm(forms.Form):
@@ -32,9 +29,7 @@ class SignUpForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "input-material"}),
         required=True,
     )
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"class": "input-material"}), required=True
-    )
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "input-material"}), required=True)
     first_name = forms.CharField(
         max_length=30,
         widget=forms.TextInput(attrs={"class": "input-material"}),
@@ -45,63 +40,41 @@ class SignUpForm(forms.Form):
         widget=forms.TextInput(attrs={"class": "input-material"}),
         required=True,
     )
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True
-    )
-    re_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True
-    )
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True)
+    re_password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True)
 
 
 class ResetPasswordForm(forms.Form):
-    email = forms.EmailField(
-        widget=forms.EmailInput(attrs={"class": "input-material"}), required=True
-    )
+    email = forms.EmailField(widget=forms.EmailInput(attrs={"class": "input-material"}), required=True)
 
 
 class ResetPasswordConfirmForm(forms.Form):
-    password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True
-    )
-    re_password = forms.CharField(
-        widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True
-    )
+    password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True)
+    re_password = forms.CharField(widget=forms.PasswordInput(attrs={"class": "input-material"}), required=True)
 
 
 class ChangeUserInfoForm(forms.Form):
     logo = forms.ImageField(widget=CustomImageWidget, required=False)
     username = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Username"}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Username"}),
         required=False,
     )
     first_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "First Name"}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "First Name"}),
         required=False,
     )
     last_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Last Name"}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Last Name"}),
         required=False,
     )
     organisation_name = forms.CharField(
         max_length=30,
-        widget=forms.TextInput(
-            attrs={"class": "form-control", "placeholder": "Organisation Name"}
-        ),
+        widget=forms.TextInput(attrs={"class": "form-control", "placeholder": "Organisation Name"}),
         required=False,
     )
-
-
-from django import forms
-from .models import CustomUser
 
 
 class UserManagementForm(forms.ModelForm):
@@ -129,9 +102,7 @@ class UserManagementForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super(UserManagementForm, self).__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
-            self.fields[
-                "donated_projects"
-            ].initial = self.instance.donated_projects.all()
+            self.fields["donated_projects"].initial = self.instance.donated_projects.all()
 
     def save(self, *args, **kwargs):
         instance = super(UserManagementForm, self).save(commit=False)

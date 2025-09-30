@@ -1,12 +1,11 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
+
 from reports.models import Project
 
 
 class ProjectSharing(models.Model):
-    project = models.ForeignKey(
-        Project, on_delete=models.CASCADE, related_name="sharings"
-    )
+    project = models.ForeignKey(Project, on_delete=models.CASCADE, related_name="sharings")
     shared_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,

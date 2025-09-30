@@ -1,5 +1,6 @@
 from django.contrib import admin
-from reports.models import Project, Category, Dashboard, UpdateDashboard
+
+from reports.models import Category, Dashboard, Project, UpdateDashboard
 
 
 @admin.register(Category)

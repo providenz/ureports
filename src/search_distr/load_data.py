@@ -1,13 +1,14 @@
 import os
+
 import django
 import pandas as pd
+
+from search_distr.models import Distribution, Month, Person, Region, Settlement
+from utils.custom_django_functions import get_or_create_object
 
 # django init
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
-
-from search_distr.models import Person, Month, Region, Settlement, Distribution
-from utils.custom_django_functions import get_or_create_object
 
 
 def get_general_data(input_path):

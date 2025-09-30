@@ -1,14 +1,13 @@
-import openpyxl
 import os
 from io import BytesIO
 
+import openpyxl
 from django.conf import settings
 from django.core.files.base import ContentFile
-
-from reportlab.lib.pagesizes import letter, landscape
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Image, Spacer
 from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
 from reportlab.lib.units import inch, mm
+from reportlab.platypus import Image, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
 class ReportsFileGenerator:
@@ -16,9 +15,7 @@ class ReportsFileGenerator:
         # Initialize Headers, and data
         self.headers = headers
         self.data_entries = data_entries
-        self.templates_path = os.path.join(
-            settings.BASE_DIR, "data_tables", "file_generation", "templates"
-        )
+        self.templates_path = os.path.join(settings.BASE_DIR, "data_tables", "file_generation", "templates")
         self.context = context
         # Get the project and category name
         if not self.context["project"]:
@@ -42,7 +39,7 @@ class ReportsFileGenerator:
         ws["B4"] = date_without_tz.strftime("%Y-%m-%d %H:%M:%S")
 
         for row_num, header in enumerate(self.headers, start=1):
-            cell = ws.cell(row=current_row, column=row_num, value=header)
+            ws.cell(row=current_row, column=row_num, value=header)
 
         current_row += 1
 

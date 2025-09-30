@@ -1,9 +1,7 @@
-from accounts.models import CustomUser
-
 from django import forms
-
 from django.core.exceptions import ValidationError
 
+from accounts.models import CustomUser
 from reports.models import Project
 
 
@@ -32,7 +30,7 @@ class ShareProjectByEmailForm(forms.Form):
         email = self.cleaned_data.get("email")
         # Check if there is an active user with this email.
         try:
-            user = CustomUser.objects.get(email=email, is_active=True)
+            CustomUser.objects.get(email=email, is_active=True)
         except CustomUser.DoesNotExist:
             raise ValidationError("No active user found with this email address.")
 

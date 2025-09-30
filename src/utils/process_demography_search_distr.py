@@ -1,12 +1,11 @@
 import os
-import django
-import pandas as pd
 
-# django init
+import django
+
+from search_distr.models import Person
+
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
-
-from search_distr.models import Person, Month, Region, Settlement, Distribution
 
 
 def main():
@@ -42,7 +41,7 @@ def main():
             if p.age >= 60:
                 demography_qty["male_60plus"] += 1
     for key, value in demography_qty.items():
-        print(f"{key}: {round((value/total) * 100, 2)}%")
+        print(f"{key}: {round((value / total) * 100, 2)}%")
 
 
 if __name__ == "__main__":

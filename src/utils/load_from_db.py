@@ -1,15 +1,14 @@
-import os
-import django
 import json
+import os
 
+import django
 import pandas as pd
+
+from activity_map.models import Marker
+from data_tables.models import DataTable
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
-
-from reports.models import Project, Category
-from data_tables.models import DataTable
-from activity_map.models import Place, Marker
 
 
 def load_data(entries, excel):
@@ -53,9 +52,7 @@ def load_data(entries, excel):
 
 
 def main():
-    entries = DataTable.objects.filter(
-        project__name="US_UKR22_SV_007", category__name="Non-Food Items (NFI)"
-    )
+    entries = DataTable.objects.filter(project__name="US_UKR22_SV_007", category__name="Non-Food Items (NFI)")
     excel = pd.DataFrame()
     excel = load_data(entries, excel)
     file_name = "output.xlsx"

@@ -1,6 +1,6 @@
 from django.urls import path
-from search_distr import views
 
+from search_distr import views
 
 urlpatterns = [
     path("", views.index, name="search_distr"),

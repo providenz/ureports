@@ -1,18 +1,18 @@
-import os
-import django
 import json
+import os
+import random
 
+import django
 import pandas as pd
+from django.contrib.gis.geos import GEOSGeometry
+
+from activity_map.models import Marker, Place
+from data_tables.models import DataTable
+from reports.models import Category, Project
+from utils.custom_django_functions import get_or_create_object
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
-
-from reports.models import Project, Category
-from data_tables.models import DataTable
-from activity_map.models import Place, Marker
-from django.contrib.gis.geos import GEOSGeometry
-import random
-from utils.custom_django_functions import get_or_create_object
 
 
 def upload_new_data(total, current, xlsx_path):
@@ -31,7 +31,7 @@ def upload_new_data(total, current, xlsx_path):
             rayon=row["rayon"],
             oblast=row["oblast"],
         )
-        marker = get_or_create_object(
+        get_or_create_object(
             Marker,
             place=place,
             category=category,

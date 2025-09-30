@@ -1,17 +1,16 @@
 import json
-
-import pandas as pd
-import numpy as np
+import os
+import zipfile
 from datetime import datetime
 
+import numpy as np
+import pandas as pd
+from django.contrib.gis.geos import GEOSGeometry
 from django.core.files.base import ContentFile
 
-from reports.models import Project, Category, Dashboard, UpdateDashboard
-from activity_map.models import Place, Marker
+from activity_map.models import Marker, Place
 from data_tables.models import DataTable, geojson_oblasts_names
-import zipfile
-import os
-from django.contrib.gis.geos import GEOSGeometry
+from reports.models import Category, Dashboard, Project, UpdateDashboard
 
 
 class Convertor:
@@ -70,7 +69,7 @@ class Convertor:
         gromada = row["gromada"]
         settlement = row["settlement"]
 
-        if not np.nan in [oblast, rayon, gromada, settlement]:
+        if np.nan not in [oblast, rayon, gromada, settlement]:
             result["place"] = {
                 "oblast": oblast,
                 "rayon": rayon,
@@ -117,7 +116,7 @@ class Convertor:
                     received_items[column_name] = column_value
                 else:
                     continue
-            except:
+            except:  # noqa
                 continue
         result["received_items"] = received_items
 
@@ -149,11 +148,7 @@ class Convertor:
         with zipfile.ZipFile(self.zip_file, "r") as zip_ref:
             file_list = zip_ref.namelist()
             filename_to_search = os.path.basename(photo_name)
-            matching_files = [
-                file
-                for file in file_list
-                if os.path.basename(file) == filename_to_search
-            ]
+            matching_files = [file for file in file_list if os.path.basename(file) == filename_to_search]
             if matching_files:
                 file_data = zip_ref.read(matching_files[0])
                 file = ContentFile(file_data, photo_name)
@@ -163,7 +158,7 @@ class Convertor:
                 return None
 
     def create_instances(self, data):
-        print(f"Create instances start...")
+        print("Create instances start...")
         create_entries = 0
         data_len = len(data)
         for entry in data:
@@ -205,9 +200,7 @@ class Convertor:
             location_point = GEOSGeometry(f"POINT({lon} {lat})")
 
             try:
-                marker = Marker.objects.get(
-                    place=place, category=category, project=project
-                )
+                marker = Marker.objects.get(place=place, category=category, project=project)
             except Marker.DoesNotExist:
                 marker = Marker.objects.create(
                     category=category,
@@ -223,11 +216,7 @@ class Convertor:
     def update_dashboard(self, dashboard):
         upds = UpdateDashboard.objects.filter(dashboard=dashboard)
         total_benef = 0
-        entry_counter = len(
-            DataTable.objects.filter(
-                project=dashboard.project, category=dashboard.category
-            )
-        )
+        entry_counter = len(DataTable.objects.filter(project=dashboard.project, category=dashboard.category))
         female_counter = 0
         male_counter = 0
         child_counter = 0
@@ -267,65 +256,35 @@ class Convertor:
             female_18_59 += upd.female_18_59
 
             for upd_region in upd.region_stats:
-                if not upd_region["name"] in region_stats.keys():
+                if upd_region["name"] not in region_stats.keys():
                     region_stats[upd_region["name"]] = {
                         "name": upd_region["name"],
                         "oblast": geojson_oblasts_names[upd_region["name"]],
                         "settlements": 0,
                     }
-                region_stats[upd_region["name"]]["settlements"] += upd_region[
-                    "settlements"
-                ]
+                region_stats[upd_region["name"]]["settlements"] += upd_region["settlements"]
             for key, value in upd.received_items_stats.items():
-                if not key in received_items_stats.keys():
+                if key not in received_items_stats.keys():
                     received_items_stats[key] = 0
                 received_items_stats[key] += value
         for key, value in region_stats.items():
             region_stats_list.append(value)
         dashboard.total_benef = total_benef
-        dashboard.avg_people_in_family = (
-            round(total_benef / entry_counter, 2) if entry_counter != 0 else 0
-        )
-        dashboard.female_percent = (
-            round((female_counter / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.male_percent = (
-            round((male_counter / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.children_percent = (
-            round((child_counter / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.over_60_percent = (
-            round((over_60_counter / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.pwd_percent = (
-            round((pwd_counter / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
+        dashboard.avg_people_in_family = round(total_benef / entry_counter, 2) if entry_counter != 0 else 0
+        dashboard.female_percent = round((female_counter / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.male_percent = round((male_counter / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.children_percent = round((child_counter / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.over_60_percent = round((over_60_counter / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.pwd_percent = round((pwd_counter / total_benef) * 100, 2) if total_benef != 0 else 0
         dashboard.total_qty = total_qty
-        dashboard.male_60plus = (
-            round((male_60plus / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.male_18_59 = (
-            round((male_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.male_5_17 = (
-            round((male_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.male_0_4 = (
-            round((male_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.female_60plus = (
-            round((female_60plus / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.female_18_59 = (
-            round((female_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.female_5_17 = (
-            round((female_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
-        dashboard.female_0_4 = (
-            round((female_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0
-        )
+        dashboard.male_60plus = round((male_60plus / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.male_18_59 = round((male_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.male_5_17 = round((male_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.male_0_4 = round((male_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.female_60plus = round((female_60plus / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.female_18_59 = round((female_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.female_5_17 = round((female_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0
+        dashboard.female_0_4 = round((female_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0
         dashboard.region_stats = region_stats_list
         dashboard.received_items_stats = received_items_stats
         dashboard.save()
@@ -359,14 +318,14 @@ class Convertor:
             already_settlements = []
             for i in self.entries:
                 region = i.place.oblast
-                if not region in region_stats.keys():
+                if region not in region_stats.keys():
                     region_stats[region] = {
                         "name": region,
                         "oblast": geojson_oblasts_names[region],
                         "settlements": 0,
                     }
                 settlement = i.place.settlement
-                if not settlement in already_settlements:
+                if settlement not in already_settlements:
                     region_stats[region]["settlements"] += 1
                     already_settlements.append(settlement)
                 demography = json.loads(i.demography)
@@ -381,12 +340,8 @@ class Convertor:
                     + int(demography["female_5_17"])
                     + int(demography["male_5_17"])
                 )
-                over_60_counter += int(demography["female_60plus"]) + int(
-                    demography["male_60plus"]
-                )
-                pwd_counter += int(demography["female_PWD"]) + int(
-                    demography["male_PWD"]
-                )
+                over_60_counter += int(demography["female_60plus"]) + int(demography["male_60plus"])
+                pwd_counter += int(demography["female_PWD"]) + int(demography["male_PWD"])
 
                 male_60plus += int(demography["male_60plus"])
                 male_18_59 += int(demography["male_18_59"])
@@ -398,7 +353,7 @@ class Convertor:
                 female_18_59 += int(demography["female_18_59"])
                 for key, value in received.items():
                     total_qty += int(value)
-                    if not key in received_items_stats.keys():
+                    if key not in received_items_stats.keys():
                         received_items_stats[key] = 0
                     received_items_stats[key] += value
             region_stats_list = []
@@ -452,14 +407,14 @@ class Convertor:
 
             for i in self.entries:
                 region = i.place.oblast
-                if not region in region_stats.keys():
+                if region not in region_stats.keys():
                     region_stats[region] = {
                         "name": region,
                         "oblast": geojson_oblasts_names[region],
                         "settlements": 0,
                     }
                 settlement = i.place.settlement
-                if not settlement in already_settlements:
+                if settlement not in already_settlements:
                     region_stats[region]["settlements"] += 1
                     already_settlements.append(settlement)
                 demography = json.loads(i.demography)
@@ -474,12 +429,8 @@ class Convertor:
                     + int(demography["female_5_17"])
                     + int(demography["male_5_17"])
                 )
-                over_60_counter += int(demography["female_60plus"]) + int(
-                    demography["male_60plus"]
-                )
-                pwd_counter += int(demography["female_PWD"]) + int(
-                    demography["male_PWD"]
-                )
+                over_60_counter += int(demography["female_60plus"]) + int(demography["male_60plus"])
+                pwd_counter += int(demography["female_PWD"]) + int(demography["male_PWD"])
 
                 male_60plus += int(demography["male_60plus"])
                 male_18_59 += int(demography["male_18_59"])
@@ -491,7 +442,7 @@ class Convertor:
                 female_18_59 += int(demography["female_18_59"])
                 for key, value in received.items():
                     total_qty += int(value)
-                    if not key in received_items_stats.keys():
+                    if key not in received_items_stats.keys():
                         received_items_stats[key] = 0
                     received_items_stats[key] += value
             region_stats_list = []
@@ -501,49 +452,21 @@ class Convertor:
                 project=project,
                 category=category,
                 total_benef=total_benef,
-                avg_people_in_family=round(total_benef / entry_counter, 2)
-                if entry_counter != 0
-                else 0,
-                female_percent=round((female_counter / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                male_percent=round((male_counter / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                children_percent=round((child_counter / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                over_60_percent=round((over_60_counter / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                pwd_percent=round((pwd_counter / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
+                avg_people_in_family=round(total_benef / entry_counter, 2) if entry_counter != 0 else 0,
+                female_percent=round((female_counter / total_benef) * 100, 2) if total_benef != 0 else 0,
+                male_percent=round((male_counter / total_benef) * 100, 2) if total_benef != 0 else 0,
+                children_percent=round((child_counter / total_benef) * 100, 2) if total_benef != 0 else 0,
+                over_60_percent=round((over_60_counter / total_benef) * 100, 2) if total_benef != 0 else 0,
+                pwd_percent=round((pwd_counter / total_benef) * 100, 2) if total_benef != 0 else 0,
                 total_qty=total_qty,
-                male_60plus=round((male_60plus / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                male_18_59=round((male_18_59 / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                male_5_17=round((male_5_17 / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                male_0_4=round((male_0_4 / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                female_60plus=round((female_60plus / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                female_18_59=round((female_18_59 / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                female_5_17=round((female_5_17 / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
-                female_0_4=round((female_0_4 / total_benef) * 100, 2)
-                if total_benef != 0
-                else 0,
+                male_60plus=round((male_60plus / total_benef) * 100, 2) if total_benef != 0 else 0,
+                male_18_59=round((male_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0,
+                male_5_17=round((male_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0,
+                male_0_4=round((male_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0,
+                female_60plus=round((female_60plus / total_benef) * 100, 2) if total_benef != 0 else 0,
+                female_18_59=round((female_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0,
+                female_5_17=round((female_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0,
+                female_0_4=round((female_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0,
                 region_stats=region_stats_list,
                 received_items_stats=received_items_stats,
             )

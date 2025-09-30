@@ -1,13 +1,14 @@
-# serializers.py
-from rest_framework import serializers
-from .models import DataTable
-import pandas as pd
-
 import json
+
+import pandas as pd
 from rest_framework import serializers
+
+from .models import DataTable
 
 
 class DataTableSerializer(serializers.ModelSerializer):
+    project = serializers.CharField(source="project.name")
+
     class Meta:
         model = DataTable
         fields = (
@@ -29,9 +30,7 @@ class DataTableSerializer(serializers.ModelSerializer):
             representation[key] = int(value)
 
         # Convert received_items JSON field to individual fields
-        received_items = (
-            json.loads(instance.received_items) if instance.received_items else {}
-        )
+        received_items = json.loads(instance.received_items) if instance.received_items else {}
         for key, value in received_items.items():
             if key == "benef" or key == "unit":
                 if pd.isna(value):

@@ -1,15 +1,16 @@
 import os
-import django
 import random
+
+import django
 from faker import Faker
 from openpyxl import load_workbook
+
+from accounts.models import CustomUser
+from data_tables.models import DataTable
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
 
-from accounts.models import CustomUser
-from reports.models import Project
-from data_tables.models import DataTable
 
 fake = Faker()
 

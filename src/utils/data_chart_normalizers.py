@@ -45,32 +45,16 @@ class DataChartNormalizer:
                 global_demography_category_oblasts[oblast] = {category: total_benef}
 
             if global_age_category.get(category):
-                global_age_category[category]["0_4"] += (
-                    demography["female_0_4"] + demography["male_0_4"]
-                )
-                global_age_category[category]["5_17"] += (
-                    demography["female_5_17"] + demography["male_5_17"]
-                )
-                global_age_category[category]["18_59"] += (
-                    demography["female_18_59"] + demography["male_18_59"]
-                )
-                global_age_category[category]["60plus"] += (
-                    demography["female_60plus"] + demography["male_60plus"]
-                )
+                global_age_category[category]["0_4"] += demography["female_0_4"] + demography["male_0_4"]
+                global_age_category[category]["5_17"] += demography["female_5_17"] + demography["male_5_17"]
+                global_age_category[category]["18_59"] += demography["female_18_59"] + demography["male_18_59"]
+                global_age_category[category]["60plus"] += demography["female_60plus"] + demography["male_60plus"]
             else:
                 global_age_category[category] = {}
-                global_age_category[category]["0_4"] = (
-                    demography["female_0_4"] + demography["male_0_4"]
-                )
-                global_age_category[category]["5_17"] = (
-                    demography["female_5_17"] + demography["male_5_17"]
-                )
-                global_age_category[category]["18_59"] = (
-                    demography["female_18_59"] + demography["male_18_59"]
-                )
-                global_age_category[category]["60plus"] = (
-                    demography["female_60plus"] + demography["male_60plus"]
-                )
+                global_age_category[category]["0_4"] = demography["female_0_4"] + demography["male_0_4"]
+                global_age_category[category]["5_17"] = demography["female_5_17"] + demography["male_5_17"]
+                global_age_category[category]["18_59"] = demography["female_18_59"] + demography["male_18_59"]
+                global_age_category[category]["60plus"] = demography["female_60plus"] + demography["male_60plus"]
 
             if family_oblast_buffer.get(oblast):
                 family_oblast_buffer[oblast]["qty"] += 1
@@ -89,21 +73,13 @@ class DataChartNormalizer:
                     "benef": total_benef,
                 }
             if pwd_oblast_buffer.get(oblast):
-                pwd_oblast_buffer[oblast] += (
-                    demography["female_PWD"] + demography["male_PWD"]
-                )
+                pwd_oblast_buffer[oblast] += demography["female_PWD"] + demography["male_PWD"]
             else:
-                pwd_oblast_buffer[oblast] = (
-                    demography["female_PWD"] + demography["male_PWD"]
-                )
+                pwd_oblast_buffer[oblast] = demography["female_PWD"] + demography["male_PWD"]
             if pwd_category_buffer.get(category):
-                pwd_category_buffer[category] += (
-                    demography["female_PWD"] + demography["male_PWD"]
-                )
+                pwd_category_buffer[category] += demography["female_PWD"] + demography["male_PWD"]
             else:
-                pwd_category_buffer[category] = (
-                    demography["female_PWD"] + demography["male_PWD"]
-                )
+                pwd_category_buffer[category] = demography["female_PWD"] + demography["male_PWD"]
             if children_oblast_buffer.get(oblast):
                 children_oblast_buffer[oblast]["benef"] += (
                     demography["female_0_4"]
@@ -152,33 +128,23 @@ class DataChartNormalizer:
             else:
                 time_benef_category[category] = {date: total_benef}
 
-            family_oblast[oblast] = (
-                family_oblast_buffer[oblast]["benef"]
-                / family_oblast_buffer[oblast]["qty"]
-            )
+            family_oblast[oblast] = family_oblast_buffer[oblast]["benef"] / family_oblast_buffer[oblast]["qty"]
             family_category[category] = (
-                family_category_buffer[category]["benef"]
-                / family_category_buffer[category]["qty"]
+                family_category_buffer[category]["benef"] / family_category_buffer[category]["qty"]
             )
             pwd_oblast[oblast] = (
-                (pwd_oblast_buffer[oblast] * 100)
-                / family_oblast_buffer[oblast]["benef"]
+                (pwd_oblast_buffer[oblast] * 100) / family_oblast_buffer[oblast]["benef"]
                 if family_oblast_buffer[oblast]["benef"] != 0
                 else 0
             )
             pwd_category[category] = (
-                (pwd_category_buffer[category] * 100)
-                / family_category_buffer[category]["benef"]
+                (pwd_category_buffer[category] * 100) / family_category_buffer[category]["benef"]
                 if family_category_buffer[category]["benef"] != 0
                 else 0
             )
-            children_oblast[oblast] = (
-                children_oblast_buffer[oblast]["benef"]
-                / children_oblast_buffer[oblast]["qty"]
-            )
+            children_oblast[oblast] = children_oblast_buffer[oblast]["benef"] / children_oblast_buffer[oblast]["qty"]
             children_category[category] = (
-                children_category_buffer[category]["benef"]
-                / children_category_buffer[category]["qty"]
+                children_category_buffer[category]["benef"] / children_category_buffer[category]["qty"]
             )
 
             global_gender["male"] += demography["male_benef"]
@@ -186,9 +152,7 @@ class DataChartNormalizer:
 
         result = {
             "global_demography_category": json.dumps(global_demography_category),
-            "global_demography_category_oblasts": json.dumps(
-                global_demography_category_oblasts
-            ),
+            "global_demography_category_oblasts": json.dumps(global_demography_category_oblasts),
             "global_age_category": json.dumps(global_age_category),
             "global_gender": json.dumps(global_gender),
             "family_oblast": json.dumps(family_oblast),

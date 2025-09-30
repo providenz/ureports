@@ -1,7 +1,5 @@
-import math
-import json
-from collections import defaultdict
 import copy
+import math
 
 OFFSET_STEP = 0.001
 
@@ -11,9 +9,9 @@ def group_markers_by_coordinates_and_activity(markers):
 
     for marker in markers:
         key = (marker.location.x, marker.location.y, marker.category.name)
-        unique_markers[
-            key
-        ] = marker  # Этот шаг гарантирует, что маркеры с одинаковыми координатами и активностью будут уникальными
+        unique_markers[key] = (
+            marker  # Этот шаг гарантирует, что маркеры с одинаковыми координатами и активностью будут уникальными
+        )
     return list(unique_markers.values())
 
 

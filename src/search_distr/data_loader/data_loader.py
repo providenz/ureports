@@ -1,19 +1,18 @@
 import os
-import pandas as pd
-import numpy as np
-from docx import Document
-from django.conf import settings
-from io import BytesIO
-from django.core.files.base import ContentFile
 import re
+from io import BytesIO
 
-from search_distr.models import Month, Settlement, Distribution, Region, Person
+import pandas as pd
+from django.conf import settings
+from django.core.files.base import ContentFile
+from docx import Document
+
+from search_distr.models import Distribution, Month, Person, Region, Settlement
 from utils.custom_django_functions import get_or_create_object
+
 
 def proccess_bool(val):
     return "+" if val else "-"
-
-
 
 
 class DataLoader:
@@ -22,9 +21,7 @@ class DataLoader:
         self.month = month
         self.distributions = distributions
         self.distributions = self.distributions.order_by("person__name")
-        template_path = os.path.join(
-            settings.BASE_DIR, "search_distr", "data_loader", "template.docx"
-        )
+        template_path = os.path.join(settings.BASE_DIR, "search_distr", "data_loader", "template.docx")
         self.template = Document(template_path)
         self.header = self.template.tables[0]
         self.table = self.template.tables[1]
@@ -44,15 +41,9 @@ class DataLoader:
         self.table.rows[3].cells[1].text = str(self.distributions[0].person.name)
         self.table.rows[3].cells[2].text = str(self.distributions[0].person.address)
         self.table.rows[3].cells[3].text = str(self.distributions[0].person.phone)
-        self.table.rows[3].cells[4].text = proccess_bool(
-            self.distributions[0].person.is_idp
-        )
-        self.table.rows[3].cells[5].text = proccess_bool(
-            self.distributions[0].person.is_pwd
-        )
-        self.table.rows[3].cells[6].text = proccess_bool(
-            self.distributions[0].person.is_returnees
-        )
+        self.table.rows[3].cells[4].text = proccess_bool(self.distributions[0].person.is_idp)
+        self.table.rows[3].cells[5].text = proccess_bool(self.distributions[0].person.is_pwd)
+        self.table.rows[3].cells[6].text = proccess_bool(self.distributions[0].person.is_returnees)
         self.table.rows[3].cells[7].text = str(self.distributions[0].person.age)
         self.table.rows[3].cells[8].text = str(self.distributions[0].person.gender)
         counter += 1
@@ -96,13 +87,9 @@ class DataUploader:
             month = get_or_create_object(Month, month=date.month, year=date.year)
             try:
                 age = int(row["age"]) if not pd.isna(row["age"]) else 0
-            except:
-                age = re.search(r'\d+', row["age"]).group()
-            phone = (
-                "+380" + str(int(row["phone"]))[-9:]
-                if not pd.isna(row["phone"])
-                else "-"
-            )
+            except:  # noqa
+                age = re.search(r"\d+", row["age"]).group()
+            phone = "+380" + str(int(row["phone"]))[-9:] if not pd.isna(row["phone"]) else "-"
             name = row["full_name"] if not pd.isna(row["full_name"]) else "-"
             gender = row["gender"] if not pd.isna(row["gender"]) else "-"
             address = row["address"] if not pd.isna(row["address"]) else "-"
@@ -115,9 +102,7 @@ class DataUploader:
                 gender=gender,
                 settlement=settlement,
             )
-            distribution = get_or_create_object(
-                Distribution, person=person, month=month
-            )
+            distribution = get_or_create_object(Distribution, person=person, month=month)
             print(f"Created distribution {distribution}")
             self.counter += 1
         return self.counter

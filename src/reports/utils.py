@@ -1,10 +1,9 @@
-from data_tables.models import DataTable, geojson_oblasts_names
-from reports.models import Dashboard, UpdateDashboard
 from activity_map.models import Place
+from data_tables.models import geojson_oblasts_names
+from reports.models import UpdateDashboard
 
 
 def get_total_dashboard(dashboards):
-    entry_counter = len(DataTable.objects.all())
     total_benef = 0
     total_qty = 0
     females = 0
@@ -32,7 +31,7 @@ def get_total_dashboard(dashboards):
             else:
                 received_items[key] = value
         for region in dash.region_stats:
-            if not region["name"] in region_stats.keys():
+            if region["name"] not in region_stats.keys():
                 region_stats[region["name"]] = {
                     "name": region["name"],
                     "oblast": geojson_oblasts_names[region["name"]],
@@ -68,47 +67,25 @@ def get_total_dashboard(dashboards):
             "places": region["settlements"],
         }
         region_prepared.append(obj)
-    sorted_items = dict(
-        sorted(received_items.items(), key=lambda x: x[1], reverse=True)
-    )
+    sorted_items = dict(sorted(received_items.items(), key=lambda x: x[1], reverse=True))
     sorted_region = sorted(region_prepared, key=lambda x: x["coverage"], reverse=True)
 
     return {
         "total_benef": total_benef,
-        "female_percent": round((females / m_f_total) * 100, 2)
-        if m_f_total != 0
-        else 0,
+        "female_percent": round((females / m_f_total) * 100, 2) if m_f_total != 0 else 0,
         "male_percent": round((males / m_f_total) * 100, 2) if m_f_total != 0 else 0,
-        "children_percent": round((children / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
-        "over_60_percent": round((over_60 / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
+        "children_percent": round((children / total_benef) * 100, 2) if total_benef != 0 else 0,
+        "over_60_percent": round((over_60 / total_benef) * 100, 2) if total_benef != 0 else 0,
         "pwd_percent": round((pwds / total_benef) * 100, 2) if total_benef != 0 else 0,
         "total_qty": total_qty,
-        "male_60plus": round((male_60plus / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
-        "male_18_59": round((male_18_59 / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
-        "male_5_17": round((male_5_17 / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
+        "male_60plus": round((male_60plus / total_benef) * 100, 2) if total_benef != 0 else 0,
+        "male_18_59": round((male_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0,
+        "male_5_17": round((male_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0,
         "male_0_4": round((male_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0,
-        "female_60plus": round((female_60plus / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
-        "female_18_59": round((female_18_59 / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
-        "female_5_17": round((female_5_17 / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
-        "female_0_4": round((female_0_4 / total_benef) * 100, 2)
-        if total_benef != 0
-        else 0,
+        "female_60plus": round((female_60plus / total_benef) * 100, 2) if total_benef != 0 else 0,
+        "female_18_59": round((female_18_59 / total_benef) * 100, 2) if total_benef != 0 else 0,
+        "female_5_17": round((female_5_17 / total_benef) * 100, 2) if total_benef != 0 else 0,
+        "female_0_4": round((female_0_4 / total_benef) * 100, 2) if total_benef != 0 else 0,
         "region_stats": sorted_region,
         "received_items_stats": sorted_items,
     }

@@ -1,19 +1,20 @@
+import json
 import os
-import django
 import random
 import re
+
+import django
 import pandas as pd
-import json
 from django.contrib.gis.geos import GEOSGeometry
+from django.core.files import File
+
+from accounts.models import CustomUser
+from activity_map.models import Marker, Place
+from data_tables.models import DataTable
+from reports.models import Category, Project
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
-
-from django.core.files import File
-from reports.models import Project, Category
-from data_tables.models import DataTable
-from activity_map.models import Place, Marker
-from accounts.models import CustomUser
 
 
 def add_photo_to_db(base_dir, place_data, db_data):
@@ -191,12 +192,8 @@ def change_received_bread_items():
 
 
 def main():
-    create_markers(
-        "Nikopol", "Bread Distribution", 47.58076261306955, 34.38054354816123
-    )
-    create_markers(
-        "Nikopol", "Water Distribution", 47.58076261306955, 34.38054354816123
-    )
+    create_markers("Nikopol", "Bread Distribution", 47.58076261306955, 34.38054354816123)
+    create_markers("Nikopol", "Water Distribution", 47.58076261306955, 34.38054354816123)
     create_markers("Nikopol", "Hygiene", 47.58076261306955, 34.38054354816123)
 
 

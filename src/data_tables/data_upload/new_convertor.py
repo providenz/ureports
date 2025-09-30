@@ -1,17 +1,17 @@
-import os
 import json
+import os
 import zipfile
-import pandas as pd
-import numpy as np
-
-from datetime import datetime
 from collections import defaultdict
-from django.core.files.base import ContentFile
-from django.contrib.gis.geos import GEOSGeometry
+from datetime import datetime
 
-from reports.models import Project, Category, Dashboard, UpdateDashboard
-from activity_map.models import Place, Marker
+import numpy as np
+import pandas as pd
+from django.contrib.gis.geos import GEOSGeometry
+from django.core.files.base import ContentFile
+
+from activity_map.models import Marker, Place
 from data_tables.models import DataTable, geojson_oblasts_names
+from reports.models import Category, Dashboard, Project, UpdateDashboard
 from utils.custom_django_functions import get_or_create_object
 
 
@@ -57,12 +57,8 @@ class Convertor:
         result["photo"] = self.photo_search(str(row["photo"]))
         result["gender"] = self.validate_gender(row["gender"], errors)
         result["age"] = self.validate_integer(row["age"], "age", errors)
-        result["place"] = self.validate_place(
-            row["oblast"], row["rayon"], row["gromada"], row["settlement"], errors
-        )
-        result["coords"] = self.validate_coordinates(
-            row["latitude"], row["longitude"], errors
-        )
+        result["place"] = self.validate_place(row["oblast"], row["rayon"], row["gromada"], row["settlement"], errors)
+        result["coords"] = self.validate_coordinates(row["latitude"], row["longitude"], errors)
         result["demography"] = self.process_demography(row)
         result["received_items"] = self.process_received_items(row)
 
@@ -81,7 +77,6 @@ class Convertor:
         except model.DoesNotExist:
             errors[field] = f"{model_name} not exist in Database!"
             return None
-
 
     def validate_date(self, date_obj, errors):
         formats = ["%d.%m.%Y", "%d-%m-%Y", "%Y/%m/%d"]
@@ -144,18 +139,11 @@ class Convertor:
             "female_benef",
             "male_benef",
         ]
-        demography = {
-            key: self.validate_integer(row[key], key, {}) for key in demography_keys
-        }
-        return {
-            key: value if value is not None else 0 for key, value in demography.items()
-        }
+        demography = {key: self.validate_integer(row[key], key, {}) for key in demography_keys}
+        return {key: value if value is not None else 0 for key, value in demography.items()}
 
     def process_received_items(self, row):
-        received_items = {
-            key: self.validate_integer(row[key], key, {})
-            for key, value in row[25:].items()
-        }
+        received_items = {key: self.validate_integer(row[key], key, {}) for key, value in row[25:].items()}
         return {key: value for key, value in received_items.items() if value != 0}
 
     def photo_search(self, photo_name):
@@ -165,11 +153,7 @@ class Convertor:
         with zipfile.ZipFile(self.zip_file, "r") as zip_ref:
             file_list = zip_ref.namelist()
             filename_to_search = os.path.basename(photo_name)
-            matching_files = [
-                file
-                for file in file_list
-                if os.path.basename(file) == filename_to_search
-            ]
+            matching_files = [file for file in file_list if os.path.basename(file) == filename_to_search]
             if matching_files:
                 file_data = zip_ref.read(matching_files[0])
                 file = ContentFile(file_data, photo_name)
@@ -179,7 +163,7 @@ class Convertor:
                 return None
 
     def create_instances(self, data):
-        print(f"Create instances start...")
+        print("Create instances start...")
         create_entries = 0
         data_len = len(data)
         for entry in data:
@@ -234,11 +218,7 @@ class Convertor:
     def update_dashboard(self, dashboard):
         upds = UpdateDashboard.objects.filter(dashboard=dashboard)
         total_benef = 0
-        entry_counter = len(
-            DataTable.objects.filter(
-                project=dashboard.project, category=dashboard.category
-            )
-        )
+        entry_counter = len(DataTable.objects.filter(project=dashboard.project, category=dashboard.category))
         demographics_counters = defaultdict(int)
         region_stats = defaultdict(lambda: {"name": "", "oblast": "", "settlements": 0})
         received_items_stats = defaultdict(int)
@@ -263,44 +243,28 @@ class Convertor:
 
             for upd_region in upd.region_stats:
                 region_stats[upd_region["name"]]["name"] = upd_region["name"]
-                region_stats[upd_region["name"]]["oblast"] = geojson_oblasts_names[
-                    upd_region["name"]
-                ]
-                region_stats[upd_region["name"]]["settlements"] += upd_region[
-                    "settlements"
-                ]
+                region_stats[upd_region["name"]]["oblast"] = geojson_oblasts_names[upd_region["name"]]
+                region_stats[upd_region["name"]]["settlements"] += upd_region["settlements"]
 
             for key, value in upd.received_items_stats.items():
                 received_items_stats[key] += value
 
         dashboard.total_benef = total_benef
-        dashboard.avg_people_in_family = (
-            round(total_benef / entry_counter, 2) if entry_counter != 0 else 0
-        )
+        dashboard.avg_people_in_family = round(total_benef / entry_counter, 2) if entry_counter != 0 else 0
         dashboard.female_percent = (
-            round((demographics_counters["females"] / total_benef) * 100, 2)
-            if total_benef != 0
-            else 0
+            round((demographics_counters["females"] / total_benef) * 100, 2) if total_benef != 0 else 0
         )
         dashboard.male_percent = (
-            round((demographics_counters["males"] / total_benef) * 100, 2)
-            if total_benef != 0
-            else 0
+            round((demographics_counters["males"] / total_benef) * 100, 2) if total_benef != 0 else 0
         )
         dashboard.children_percent = (
-            round((demographics_counters["children"] / total_benef) * 100, 2)
-            if total_benef != 0
-            else 0
+            round((demographics_counters["children"] / total_benef) * 100, 2) if total_benef != 0 else 0
         )
         dashboard.over_60_percent = (
-            round((demographics_counters["over_60"] / total_benef) * 100, 2)
-            if total_benef != 0
-            else 0
+            round((demographics_counters["over_60"] / total_benef) * 100, 2) if total_benef != 0 else 0
         )
         dashboard.pwd_percent = (
-            round((demographics_counters["pwds"] / total_benef) * 100, 2)
-            if total_benef != 0
-            else 0
+            round((demographics_counters["pwds"] / total_benef) * 100, 2) if total_benef != 0 else 0
         )
         dashboard.total_qty = demographics_counters["total_qty"]
 
@@ -310,9 +274,7 @@ class Convertor:
                 setattr(
                     dashboard,
                     key,
-                    round((demographics_counters[key] / total_benef) * 100, 2)
-                    if total_benef != 0
-                    else 0,
+                    round((demographics_counters[key] / total_benef) * 100, 2) if total_benef != 0 else 0,
                 )
 
         dashboard.region_stats = list(region_stats.values())
@@ -382,12 +344,8 @@ class Convertor:
                 + int(demography["female_5_17"])
                 + int(demography["male_5_17"])
             )
-            demographics_counters["over_60"] += int(demography["female_60plus"]) + int(
-                demography["male_60plus"]
-            )
-            demographics_counters["PWD"] += int(demography["female_PWD"]) + int(
-                demography["male_PWD"]
-            )
+            demographics_counters["over_60"] += int(demography["female_60plus"]) + int(demography["male_60plus"])
+            demographics_counters["PWD"] += int(demography["female_PWD"]) + int(demography["male_PWD"])
 
             demographics_counters["male_60plus"] += int(demography["male_60plus"])
             demographics_counters["male_18_59"] += int(demography["male_18_59"])
@@ -431,14 +389,11 @@ class Convertor:
             dashboard.total_qty = total_qty
             entry_counter = len(self.entries)
             dashboard.avg_people_in_family = (
-                round(demographics_counters["benef"] / entry_counter, 2)
-                if entry_counter != 0
-                else 0
+                round(demographics_counters["benef"] / entry_counter, 2) if entry_counter != 0 else 0
             )
             dashboard.female_percent = (
                 round(
-                    (demographics_counters["female_benef"] / dashboard.total_benef)
-                    * 100,
+                    (demographics_counters["female_benef"] / dashboard.total_benef) * 100,
                     2,
                 )
                 if dashboard.total_benef != 0
@@ -453,16 +408,12 @@ class Convertor:
                 else 0
             )
             dashboard.children_percent = (
-                round(
-                    (demographics_counters["children"] / dashboard.total_benef) * 100, 2
-                )
+                round((demographics_counters["children"] / dashboard.total_benef) * 100, 2)
                 if dashboard.total_benef != 0
                 else 0
             )
             dashboard.over_60_percent = (
-                round(
-                    (demographics_counters["over_60"] / dashboard.total_benef) * 100, 2
-                )
+                round((demographics_counters["over_60"] / dashboard.total_benef) * 100, 2)
                 if dashboard.total_benef != 0
                 else 0
             )

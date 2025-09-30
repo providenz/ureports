@@ -2,7 +2,6 @@ from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from rest_framework_simplejwt.tokens import AccessToken
-from django.utils import timezone
 
 
 def send_activate_mail(base_link, user):
@@ -57,9 +56,7 @@ def send_reset_password_mail(base_link, user):
 
 def send_change_email_mail(base_link, user, new_email):
     token = str(AccessToken.for_user(user))
-    verification_link = (
-        f"{base_link}/change_email_confirm/{user.id}/{token}/{new_email}"
-    )
+    verification_link = f"{base_link}/change_email_confirm/{user.id}/{token}/{new_email}"
     subject = "Email Activation"
     message = render_to_string(
         "accounts/change_email.html",

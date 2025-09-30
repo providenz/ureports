@@ -1,15 +1,11 @@
-import json
-
-from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
-from reports.models import Project, Category, Dashboard, UpdateDashboard
-from data_tables.models import DataTable, RegionStatistic
-from activity_map.models import Place
-from utils.data_chart_normalizers import DataChartNormalizer
-from rest_framework.views import APIView
-from rest_framework.response import Response
+from django.shortcuts import get_object_or_404, redirect, render
 from rest_framework import status
-from data_tables.models import geojson_oblasts_names
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from activity_map.models import Place
+from reports.models import Category, Dashboard, Project, UpdateDashboard
 from reports.utils import get_total_dashboard
 
 
@@ -39,10 +35,7 @@ def project_detail(request, project_slug):
     project = get_object_or_404(Project, slug=project_slug)
 
     # Ensure that the user should see this project
-    if (
-        not request.user.is_superuser
-        and not project.donors.filter(id=request.user.id).exists()
-    ):
+    if not request.user.is_superuser and not project.donors.filter(id=request.user.id).exists():
         # You might create a custom 403.html template
         return render(request, "403.html", status=403)
 
@@ -143,9 +136,7 @@ class RegionsDataCharts(APIView):
                 obj = {
                     "name": region["name"],
                     "oblast": region["oblast"],
-                    "coverage": round(
-                        (int(region["settlements"]) / total_place) * 100, 2
-                    ),
+                    "coverage": round((int(region["settlements"]) / total_place) * 100, 2),
                     "places": region["settlements"],
                 }
                 region_stats.append(obj)

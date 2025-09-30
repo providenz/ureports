@@ -1,13 +1,12 @@
-from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from reports.models import Project, Category
-from photos.forms import DataTablePhotoFilterForm
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator
 from django.http import JsonResponse
-from data_tables.models import DataTable
-from activity_map.models import Place
-from utils.create_choices import create_photo_choices as create_choices
+from django.shortcuts import get_object_or_404, render
 
+from data_tables.models import DataTable
+from photos.forms import DataTablePhotoFilterForm
+from reports.models import Category, Project
+from utils.create_choices import create_photo_choices as create_choices
 
 # View for dynamicly getting cities
 
@@ -22,17 +21,11 @@ def get_all_settlements(request):
 
     oblast = request.GET.get("oblast")
     if not oblast:
-        settlements = set(
-            data_entries.values_list(
-                "place__settlement", "place__settlement"
-            ).distinct()
-        )
+        settlements = set(data_entries.values_list("place__settlement", "place__settlement").distinct())
         settlement_choices = list(settlements)
     else:
         settlements = set(
-            data_entries.filter(place__oblast=oblast)
-            .values_list("place__settlement", "place__settlement")
-            .distinct()
+            data_entries.filter(place__oblast=oblast).values_list("place__settlement", "place__settlement").distinct()
         )
         settlement_choices = list(settlements)
     return JsonResponse({"settlements": settlement_choices})
@@ -41,33 +34,22 @@ def get_all_settlements(request):
 def get_settlements(request, project_slug, category_slug=None):
     project = get_object_or_404(Project, slug=project_slug)
 
-    if (
-        not request.user.is_superuser
-        and not project.donors.filter(id=request.user.id).exists()
-    ):
+    if not request.user.is_superuser and not project.donors.filter(id=request.user.id).exists():
         return render(request, "403.html", status=403)
 
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug)
-        data_entries = DataTable.objects.filter(
-            project=project, category_id=category.id
-        ).order_by("-date")
+        data_entries = DataTable.objects.filter(project=project, category_id=category.id).order_by("-date")
     else:
         data_entries = DataTable.objects.filter(project=project).order_by("-date")
 
     oblast = request.GET.get("oblast")
     if not oblast:
-        settlements = set(
-            data_entries.values_list(
-                "place__settlement", "place__settlement"
-            ).distinct()
-        )
+        settlements = set(data_entries.values_list("place__settlement", "place__settlement").distinct())
         settlement_choices = list(settlements)
     else:
         settlements = set(
-            data_entries.filter(place__oblast=oblast)
-            .values_list("place__settlement", "place__settlement")
-            .distinct()
+            data_entries.filter(place__oblast=oblast).values_list("place__settlement", "place__settlement").distinct()
         )
         settlement_choices = list(settlements)
     return JsonResponse({"settlements": settlement_choices})
@@ -77,17 +59,12 @@ def get_settlements(request, project_slug, category_slug=None):
 def project_photos(request, project_slug, category_slug=None):
     project = get_object_or_404(Project, slug=project_slug)
 
-    if (
-        not request.user.is_superuser
-        and not project.donors.filter(id=request.user.id).exists()
-    ):
+    if not request.user.is_superuser and not project.donors.filter(id=request.user.id).exists():
         return render(request, "403.html", status=403)
 
     if category_slug:
         category = get_object_or_404(Category, slug=category_slug)
-        data_entries = DataTable.objects.filter(
-            project=project, category_id=category.id
-        ).order_by("-date")
+        data_entries = DataTable.objects.filter(project=project, category_id=category.id).order_by("-date")
     else:
         data_entries = DataTable.objects.filter(project=project).order_by("-date")
         category = None
@@ -97,9 +74,7 @@ def project_photos(request, project_slug, category_slug=None):
     settlement_choices, oblasts_choices = create_choices(data_entries)
 
     # Create filter form
-    filter_form = DataTablePhotoFilterForm(
-        request.GET, settlements=settlement_choices, oblasts=oblasts_choices
-    )
+    filter_form = DataTablePhotoFilterForm(request.GET, settlements=settlement_choices, oblasts=oblasts_choices)
 
     # Handle filtering
     if filter_form.is_valid():
@@ -134,9 +109,7 @@ def project_photos(request, project_slug, category_slug=None):
         data_entries.adjusted_elided_pages = paginator.get_elided_page_range(1)
     except EmptyPage:
         data_entries = paginator.page(paginator.num_pages)
-        data_entries.adjusted_elided_pages = paginator.get_elided_page_range(
-            paginator.num_pages
-        )
+        data_entries.adjusted_elided_pages = paginator.get_elided_page_range(paginator.num_pages)
 
     if category:
         context = {
@@ -158,11 +131,7 @@ def photos(request):
     else:
         return render(request, "403.html", status=403)
     settlement_choices, oblasts_choices = create_choices(data_entries)
-    projects = set(
-        Project.objects.filter(donors=request.user)
-        .values_list("name", "name")
-        .distinct()
-    )
+    projects = set(Project.objects.filter(donors=request.user).values_list("name", "name").distinct())
     project_choices = [("", "All projects")] + list(projects)
     # Create filter form
     filter_form = DataTablePhotoFilterForm(
@@ -207,9 +176,7 @@ def photos(request):
         data_entries.adjusted_elided_pages = paginator.get_elided_page_range(1)
     except EmptyPage:
         data_entries = paginator.page(paginator.num_pages)
-        data_entries.adjusted_elided_pages = paginator.get_elided_page_range(
-            paginator.num_pages
-        )
+        data_entries.adjusted_elided_pages = paginator.get_elided_page_range(paginator.num_pages)
 
     context = {
         "data_entries": data_entries,

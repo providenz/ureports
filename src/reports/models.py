@@ -1,9 +1,8 @@
 from django.db import models
-from accounts.models import CustomUser
-import os
+from django.template.defaultfilters import slugify
 from django.utils import timezone
 
-from django.template.defaultfilters import slugify
+from accounts.models import CustomUser
 
 ACTIVITY_ICONS = {
     "Bread Distribution": "fa-bread-slice",

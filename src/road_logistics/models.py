@@ -2,7 +2,6 @@ from django.contrib.gis.db import models
 from django.utils import timezone
 
 
-
 class Car(models.Model):
     mark = models.CharField(max_length=255)
     number = models.CharField(max_length=50)
@@ -14,7 +13,6 @@ class Car(models.Model):
 class Ride(models.Model):
     car = models.ForeignKey(Car, on_delete=models.CASCADE)
     date = models.DateField(default=timezone.now)
-
 
     start_point = models.PointField()
     start_odometer_kilometres = models.PositiveBigIntegerField()
@@ -33,13 +31,13 @@ class Ride(models.Model):
     mission = models.CharField(max_length=300)
 
     def __str__(self) -> str:
-        return f'{self.car} - {self.date}'
+        return f"{self.car} - {self.date}"
 
 
 class RidePoint(models.Model):
     number = models.IntegerField()
     ride = models.ForeignKey(Ride, on_delete=models.CASCADE)
     point = models.PointField()
-    
+
     def __str__(self) -> str:
-        return f'{self.number} - {self.ride}'
+        return f"{self.number} - {self.ride}"

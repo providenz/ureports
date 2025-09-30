@@ -1,9 +1,8 @@
 import pytest
+from bs4 import BeautifulSoup
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework_simplejwt.tokens import AccessToken
-from bs4 import BeautifulSoup
-
-from django.contrib.auth import get_user_model
 
 User = get_user_model()
 

@@ -1,15 +1,16 @@
 import os
-import django
 import random
 import re
+
+import django
 import pandas as pd
+from django.core.files import File
+
+from accounts.models import CustomUser
+from reports.models import Category, DistributionPhoto
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "volunteer_reports.settings")
 django.setup()
-
-from django.core.files import File
-from reports.models import Project, DistributionPhoto, Category
-from accounts.models import CustomUser
 
 
 def add_photo_to_db(base_dir, excel_data):
@@ -31,9 +32,7 @@ def add_photo_to_db(base_dir, excel_data):
                 if donor_projects:
                     chosen_projects = random.choice(donor_projects)
                     random_excel_data = random.choice(excel_data)
-                    oblast, place = normalize_excel_data(
-                        random_excel_data[0], random_excel_data[1]
-                    )
+                    oblast, place = normalize_excel_data(random_excel_data[0], random_excel_data[1])
                     photo_instance = DistributionPhoto(
                         project=chosen_projects,
                         category=bread_category,

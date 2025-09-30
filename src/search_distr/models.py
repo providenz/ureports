@@ -1,8 +1,9 @@
 import calendar
-from transliterate import translit
+
 from django.db import models
 from django.template.defaultfilters import slugify
 from django.utils import timezone
+from transliterate import translit
 
 
 class Month(models.Model):
@@ -80,7 +81,7 @@ class Person(models.Model):
 class Distribution(models.Model):
     month = models.ForeignKey(Month, on_delete=models.CASCADE)
     person = models.ForeignKey(Person, on_delete=models.CASCADE)
-    category = models.ForeignKey('reports.Category', blank=True, null=True, on_delete=models.CASCADE)
+    category = models.ForeignKey("reports.Category", blank=True, null=True, on_delete=models.CASCADE)
     is_received = models.BooleanField(default=True)
 
     def __str__(self) -> str:
@@ -95,9 +96,10 @@ class File(models.Model):
     def __str__(self) -> str:
         return self.name
 
+
 class ManagerAccess(models.Model):
     is_full = models.BooleanField(default=False)
     regions = models.ManyToManyField(Region, verbose_name="Regions", blank=True)
 
     def __str__(self) -> str:
-        return 'Full Access' if self.is_full else f'{", ".join([r.name for r in self.regions.all()])}'
+        return "Full Access" if self.is_full else f"{', '.join([r.name for r in self.regions.all()])}"

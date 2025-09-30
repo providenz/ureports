@@ -1,30 +1,30 @@
-from django.db.models import Q
-from django.template.loader import render_to_string
-from rest_framework_simplejwt.tokens import AccessToken, TokenError
-from django.contrib.auth import logout, login as dj_login, authenticate
+from django.contrib import messages
+from django.contrib.auth import authenticate
+from django.contrib.auth import login as dj_login
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.decorators import login_required
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse
-from django.contrib.auth.decorators import user_passes_test
 from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from rest_framework_simplejwt.tokens import AccessToken, TokenError
 
 from accounts.forms import (
-    SignUpForm,
-    ResetPasswordForm,
-    ResetPasswordConfirmForm,
     ChangeUserInfoForm,
     LoginForm,
+    ResetPasswordConfirmForm,
+    ResetPasswordForm,
+    SignUpForm,
     UserManagementForm,
 )
-from accounts.send_mails import (
-    send_activate_mail,
-    send_reset_password_mail,
-    send_change_email_mail,
-)
 from accounts.models import CustomUser as User
+from accounts.send_mails import send_activate_mail, send_change_email_mail, send_reset_password_mail
+
+from .models import CustomUser
 
 
 def login(request):
@@ -112,9 +112,7 @@ def register(request):
                         errors["password_validation_error"] = e.messages[0]
 
                 else:
-                    errors[
-                        "password_miss_match"
-                    ] = "Password and Repeat Password miss match."
+                    errors["password_miss_match"] = "Password and Repeat Password miss match."
             else:
                 if check_email:
                     errors["email_used"] = "Email already used."
@@ -135,7 +133,7 @@ def activate(request, uid, token):
         context["user_not_exist"] = True
         return render(request, "accounts/activate.html", context)
     try:
-        access = AccessToken(token)
+        AccessToken(token)
         user.is_active = True
         user.save()
         context["activation_success"] = True
@@ -188,7 +186,7 @@ def reset_password_confirm(request, uid, token):
         errors["user_not_exist"] = True
         return render(request, "accounts/reset_password_confirm.html", context)
     try:
-        access = AccessToken(token)
+        AccessToken(token)
         if request.method == "POST":
             form = ResetPasswordConfirmForm(request.POST)
             if form.is_valid():
@@ -200,9 +198,7 @@ def reset_password_confirm(request, uid, token):
                     user.save()
                     return redirect("reset_password_confirm_success")
                 else:
-                    errors[
-                        "password_miss_match"
-                    ] = "Password and Repeat Password miss match."
+                    errors["password_miss_match"] = "Password and Repeat Password miss match."
                     form = ResetPasswordConfirmForm()
                     context["form"] = form
         else:
@@ -258,7 +254,7 @@ def change_email(request):
     context = {}
     errors = {}
     user = request.user
-    email = user.email
+
     base_link = request.build_absolute_uri("/")
     if request.method == "POST":
         form = ResetPasswordForm(request.POST)
@@ -292,7 +288,7 @@ def change_email_confirm(request, uid, token, email):
         context["user_not_exist"] = True
         return render(request, "accounts/change_email_confirm.html", context)
     try:
-        access = AccessToken(token)
+        AccessToken(token)
         user.email = email
         user.save()
         if request.user.is_authenticated:
@@ -317,9 +313,7 @@ def delete_account(request):
 def manage_users(request):
     query = request.GET.get("q")
     if query:
-        user_list = CustomUser.objects.filter(
-            Q(username__icontains=query) | Q(email__icontains=query)
-        ).order_by("id")
+        user_list = CustomUser.objects.filter(Q(username__icontains=query) | Q(email__icontains=query)).order_by("id")
     else:
         user_list = CustomUser.objects.all().order_by("-id")
 
@@ -330,14 +324,10 @@ def manage_users(request):
     return render(request, "accounts/manage_users.html", {"users": users})
 
 
-from .models import CustomUser
-
-
 def edit_user(request, user_id):
     user = get_object_or_404(CustomUser, pk=user_id)
 
     if request.method == "POST":
-        print(request.POST)
         form = UserManagementForm(request.POST, instance=user)
         if form.is_valid():
             form.save()
@@ -345,19 +335,12 @@ def edit_user(request, user_id):
     else:
         form = UserManagementForm(instance=user)
 
-    return HttpResponse(
-        render_to_string(
-            "partials/edit_user_form.html", {"form": form, "user_id": user_id}
-        )
-    )
-
-
-from django.contrib import messages
+    return HttpResponse(render_to_string("partials/edit_user_form.html", {"form": form, "user_id": user_id}))
 
 
 def delete_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id)
     user_email = user.email
     user.delete()
-    messages.success(request, f'User {user_email} has been deleted.')
+    messages.success(request, f"User {user_email} has been deleted.")
     return redirect("manage_users")

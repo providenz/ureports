@@ -1,11 +1,6 @@
 from django.urls import path
 
-from activity_map.views import (
-    MarkerListAPIView,
-    maps,
-    GetMarkerPhotosView,
-    RegionsListAPIView,
-)
+from activity_map.views import GetMarkerPhotosView, MarkerListAPIView, RegionsListAPIView, maps
 
 urlpatterns = [
     path("maps/", maps, name="maps"),

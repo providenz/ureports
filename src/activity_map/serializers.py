@@ -1,8 +1,10 @@
 import json
+
 from rest_framework import serializers
+
 from activity_map.models import Marker, Place
-from reports.models import Category, Project
 from data_tables.models import DataTable, RegionStatistic
+from reports.models import Category, Project
 
 
 class ProjectSerializer(serializers.ModelSerializer):
@@ -43,9 +45,7 @@ class DataTableSerializer(serializers.ModelSerializer):
         representation["rayon"] = instance.place.rayon
         representation["gromada"] = instance.place.gromada
         representation["settlement"] = instance.place.settlement
-        received_items = (
-            json.loads(instance.received_items) if instance.received_items else {}
-        )
+        received_items = json.loads(instance.received_items) if instance.received_items else {}
         representation["received_items"] = received_items
 
         return representation
@@ -89,13 +89,9 @@ class RegionStatisticSerializer(serializers.Serializer):
     activities = serializers.SerializerMethodField()
 
     def get_activities(self, instance):
-        region = RegionStatistic.objects.filter(
-            name=instance["name"], oblast=instance["oblast"]
-        ).first()
+        region = RegionStatistic.objects.filter(name=instance["name"], oblast=instance["oblast"]).first()
         if region:
-            return list(
-                region.project.categories.values_list("name", flat=True).distinct()
-            )
+            return list(region.project.categories.values_list("name", flat=True).distinct())
         return []
 
     def to_representation(self, instance):

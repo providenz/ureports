@@ -1,6 +1,8 @@
 from datetime import datetime
+
 from search_distr.models import Month
-from utils.custom_django_functions import  get_or_create_object
+from utils.custom_django_functions import get_or_create_object
+
 
 def get_date(month, year):
     date_string = f"{year}-{month:02d}-01"
@@ -29,10 +31,7 @@ def find_next_previous_dates(date_obj, date_list):
 
 def get_next_and_previous_months(current_month):
     current_date = datetime.now()
-    if (
-        current_month.year == current_date.year
-        and current_month.month == current_date.month
-    ):
+    if current_month.year == current_date.year and current_month.month == current_date.month:
         next_month_instance = None
     else:
         next_month_year, next_month = current_month.year, current_month.month + 1

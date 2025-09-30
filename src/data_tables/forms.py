@@ -1,5 +1,4 @@
 from django import forms
-from data_tables.models import DataTable
 
 
 class DataTableFilterForm(forms.Form):
@@ -19,15 +18,11 @@ class DataTableFilterForm(forms.Form):
         required=False,
     )
     date_from = forms.DateField(
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "form-control filter_input"}
-        ),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control filter_input"}),
         required=False,
     )
     date_to = forms.DateField(
-        widget=forms.DateInput(
-            attrs={"type": "date", "class": "form-control filter_input"}
-        ),
+        widget=forms.DateInput(attrs={"type": "date", "class": "form-control filter_input"}),
         required=False,
     )
 
